@@ -25,6 +25,9 @@ app:
   qr:
     expiration-minutes: ${QR_EXPIRATION_MINUTES:15}
 
+coupon:
+  expiration-hours: 48 # Example: set to 48 hours
+
 management:
   endpoints:
     web:

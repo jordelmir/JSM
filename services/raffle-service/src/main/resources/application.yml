@@ -28,3 +28,6 @@ spring:
         profile-separator: /
         default-context: application
         application-name: ${spring.application.name}
+
+redemption-service:
+  url: http://localhost:8082 # Or actual URL of redemption service

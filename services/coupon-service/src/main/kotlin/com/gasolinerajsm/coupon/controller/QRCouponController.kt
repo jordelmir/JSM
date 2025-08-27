@@ -3,6 +3,9 @@ package com.gasolinerajsm.coupon.controller
 import com.gasolinerajsm.coupon.dto.*
 import com.gasolinerajsm.coupon.service.QRCouponService
 import com.gasolinerajsm.coupon.service.QRCodeGenerator
+import jakarta.validation.Valid
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -17,7 +20,7 @@ class QRCouponController(
 
     @PostMapping("/generate")
     @PreAuthorize("hasRole('EMPLOYEE') or hasRole('OWNER')")
-    fun generateQRCoupon(@RequestBody request: GenerateQRRequest): ResponseEntity<GenerateQRResponse> {
+    fun generateQRCoupon(@Valid @RequestBody request: GenerateQRRequest): ResponseEntity<GenerateQRResponse> {
         val coupon = couponService.generateQRCoupon(request)
         val qrImage = qrCodeGenerator.generateQRImage(coupon.qrCode)
         val qrImageBase64 = Base64.getEncoder().encodeToString(qrImage)
@@ -68,11 +71,9 @@ class QRCouponController(
 
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasRole('CLIENT') and #userId == authentication.principal.id")
-    fun getUserCoupons(@PathVariable userId: UUID): ResponseEntity<UserTicketsResponse> {
-        val coupons = couponService.getUserCoupons(userId)
-        val totalTickets = couponService.getUserActiveTickets(userId)
-
-        val couponDetails = coupons.map { coupon ->
+    fun getUserCoupons(@PathVariable userId: UUID, pageable: Pageable): ResponseEntity<Page<CouponDetailsResponse>> {
+        val couponsPage = couponService.getUserCoupons(userId, pageable)
+        val couponDetailsPage = couponsPage.map { coupon ->
             CouponDetailsResponse(
                 id = coupon.id,
                 token = coupon.token,
@@ -87,15 +88,7 @@ class QRCouponController(
                 createdAt = coupon.createdAt
             )
         }
-
-        val response = UserTicketsResponse(
-            totalActiveTickets = totalTickets,
-            coupons = couponDetails,
-            weeklyRaffleEligible = totalTickets > 0,
-            annualRaffleEligible = totalTickets > 0
-        )
-
-        return ResponseEntity.ok(response)
+        return ResponseEntity.ok(couponDetailsPage)
     }
 
     @GetMapping("/station/{stationId}/stats")

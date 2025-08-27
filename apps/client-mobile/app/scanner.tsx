@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   Dimensions,
+  ActivityIndicator, // Import ActivityIndicator
 } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,6 +50,12 @@ export default function ScannerScreen() {
         throw new Error('Usuario no autenticado');
       }
 
+      // Basic client-side validation for QR code data format
+      // Assuming QR code data is a string that should not be empty
+      if (!data || typeof data !== 'string' || data.trim().length === 0) {
+        throw new Error('Formato de código QR inválido.');
+      }
+
       const result = await scanQRCode(data, user.id);
 
       Alert.alert('¡QR Escaneado!', result.message, [
@@ -59,12 +66,16 @@ export default function ScannerScreen() {
               pathname: '/coupon-activation',
               params: { couponId: result.couponId },
             });
+            setScanned(false); // Reset scanned state after navigation
           },
           style: 'default',
         },
         {
           text: 'Ver Después',
-          onPress: () => router.back(),
+          onPress: () => {
+            router.back();
+            setScanned(false); // Reset scanned state after navigation
+          },
           style: 'cancel',
         },
       ]);
@@ -81,6 +92,7 @@ export default function ScannerScreen() {
 
   const resetScanner = () => {
     setScanned(false);
+    setIsLoading(false); // Ensure isLoading is also reset
   };
 
   if (hasPermission === null) {
@@ -96,13 +108,17 @@ export default function ScannerScreen() {
       <View style={styles.container}>
         <Ionicons name="camera-outline" size={64} color="#8E8E93" />
         <Text style={styles.message}>
-          Necesitamos acceso a tu cámara para escanear códigos QR
+          Necesitamos acceso a tu cámara para escanear códigos QR.
+          Por favor, permite el acceso en la configuración de tu dispositivo.
         </Text>
         <TouchableOpacity
           style={styles.permissionButton}
-          onPress={() => Camera.requestCameraPermissionsAsync()}
+          onPress={async () => {
+            const { status } = await Camera.requestCameraPermissionsAsync();
+            setHasPermission(status === 'granted');
+          }}
         >
-          <Text style={styles.permissionButtonText}>Permitir Cámara</Text>
+          <Text style={styles.permissionButtonText}>Reintentar Permisos</Text>
         </TouchableOpacity>
       </View>
     );
@@ -143,7 +159,12 @@ export default function ScannerScreen() {
             <Text style={styles.instructionsText}>
               Apunta la cámara al código QR del dispensador
             </Text>
-            {isLoading && <Text style={styles.loadingText}>Procesando...</Text>}
+            {isLoading && (
+              <View style={styles.loadingOverlay}>
+                <ActivityIndicator size="large" color="#FFFFFF" />
+                <Text style={styles.loadingText}>Procesando...</Text>
+              </View>
+            )}
           </View>
 
           {/* Reset Button */}
@@ -258,9 +279,20 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
   },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
   loadingText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#FFFFFF', // Changed color for better visibility on dark overlay
     marginTop: 8,
     fontWeight: '600',
   },

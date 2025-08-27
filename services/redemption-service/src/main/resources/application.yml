@@ -40,6 +40,10 @@ spring:
 app:
   qr:
     secret: ${QR_SIGNATURE_SECRET}
+    security:
+      key-factory-algorithm: EC
+      signature-algorithm: SHA256withECDSA
+      clock-skew-tolerance-seconds: 10 # Example: 10 seconds leeway
   geofence-radius-meters: ${GEOfENCE_RADIUS_METERS:50}
 
 # --- OpenTelemetry Tracing Configuration ---

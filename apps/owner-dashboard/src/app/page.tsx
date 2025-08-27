@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ChartBarIcon,
   BuildingStorefrontIcon,
@@ -21,6 +21,7 @@ import {
   BarChart,
   Bar,
 } from 'recharts';
+import { DashboardData } from '@/types/dashboard'; // Import your data types
 
 // Helper function to format numbers consistently
 const formatNumber = (num: number): string => {
@@ -28,38 +29,61 @@ const formatNumber = (num: number): string => {
 };
 
 export default function DashboardPage() {
-  // Mock data
-  const mockData = {
-    overview: {
-      totalStations: 12,
-      totalEmployees: 48,
-      totalTicketsToday: 1247,
-      totalRevenue: 2450000,
-      weeklyGrowth: 12.5,
-      monthlyGrowth: -3.2,
-    },
-    weeklyData: [
-      { day: 'Lun', tickets: 180, revenue: 450000 },
-      { day: 'Mar', tickets: 220, revenue: 550000 },
-      { day: 'Mié', tickets: 190, revenue: 475000 },
-      { day: 'Jue', tickets: 280, revenue: 700000 },
-      { day: 'Vie', tickets: 320, revenue: 800000 },
-      { day: 'Sáb', tickets: 380, revenue: 950000 },
-      { day: 'Dom', tickets: 290, revenue: 725000 },
-    ],
-    topStations: [
-      { name: 'Estación Centro', tickets: 245, revenue: 612500, growth: 15.2 },
-      { name: 'Estación Norte', tickets: 198, revenue: 495000, growth: 8.7 },
-      { name: 'Estación Sur', tickets: 167, revenue: 417500, growth: -2.1 },
-      { name: 'Estación Este', tickets: 134, revenue: 335000, growth: 22.3 },
-    ],
-    employeePerformance: [
-      { name: 'Juan Pérez', station: 'Centro', tickets: 45, conversion: 78 },
-      { name: 'María González', station: 'Norte', tickets: 38, conversion: 82 },
-      { name: 'Carlos Rodríguez', station: 'Sur', tickets: 42, conversion: 75 },
-      { name: 'Ana Jiménez', station: 'Este', tickets: 35, conversion: 88 },
-    ],
-  };
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        // Replace with your actual API endpoint
+        const response = await fetch('/api/dashboard-summary'); // Example API endpoint
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data: DashboardData = await response.json();
+        setDashboardData(data);
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+        setError("Failed to load dashboard data. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []); // Empty dependency array means this runs once on mount
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-lg text-gray-600">Cargando datos del dashboard...</p>
+        {/* You can add a spinner or skeleton loader here */}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-lg text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  // If data is null after loading, it means an error occurred but was handled
+  if (!dashboardData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-lg text-gray-600">No hay datos disponibles.</p>
+      </div>
+    );
+  }
+
+  // Use dashboardData instead of mockData
+  const { overview, weeklyData, topStations, employeePerformance } = dashboardData;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -92,7 +116,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Estaciones</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {mockData.overview.totalStations}
+                  {overview.totalStations}
                 </p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -106,7 +130,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Empleados</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {mockData.overview.totalEmployees}
+                  {overview.totalEmployees}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -120,12 +144,12 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Tickets Hoy</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatNumber(mockData.overview.totalTicketsToday)}
+                  {formatNumber(overview.totalTicketsToday)}
                 </p>
                 <div className="flex items-center mt-1">
                   <ArrowUpIcon className="w-4 h-4 text-green-500" />
                   <span className="text-sm text-green-600 ml-1">
-                    +{mockData.overview.weeklyGrowth}%
+                    +{overview.weeklyGrowth}%
                   </span>
                 </div>
               </div>
@@ -140,12 +164,12 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Ingresos</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ₡{formatNumber(mockData.overview.totalRevenue)}
+                  ₡{formatNumber(overview.totalRevenue)}
                 </p>
                 <div className="flex items-center mt-1">
                   <ArrowDownIcon className="w-4 h-4 text-red-500" />
                   <span className="text-sm text-red-600 ml-1">
-                    {mockData.overview.monthlyGrowth}%
+                    {overview.monthlyGrowth}%
                   </span>
                 </div>
               </div>
@@ -164,7 +188,7 @@ export default function DashboardPage() {
               Tickets por Día (Esta Semana)
             </h3>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={mockData.weeklyData}>
+              <LineChart data={weeklyData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="day" />
                 <YAxis />
@@ -186,7 +210,7 @@ export default function DashboardPage() {
               Ingresos por Día (Esta Semana)
             </h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={mockData.weeklyData}>
+              <BarChart data={weeklyData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="day" />
                 <YAxis />
@@ -213,7 +237,7 @@ export default function DashboardPage() {
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                {mockData.topStations.map((station, index) => (
+                {topStations.map((station, index) => (
                   <div
                     key={station.name}
                     className="flex items-center justify-between"
@@ -264,7 +288,7 @@ export default function DashboardPage() {
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                {mockData.employeePerformance.map((employee) => (
+                {employeePerformance.map((employee) => (
                   <div
                     key={employee.name}
                     className="flex items-center justify-between"

@@ -7,36 +7,96 @@ on:
     branches: [main, develop]
 
 jobs:
-  lint-and-test:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
 
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Cache Nx
+        uses: actions/cache@v3
+        with:
+          path: .nx/cache
+          key: ${{ runner.os }}-nx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-nx-
       - name: Install dependencies
         run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
       - name: Test affected projects
         run: npm run affected:test -- --base=origin/main
 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Cache Nx
+        uses: actions/cache@v3
+        with:
+          path: .nx/cache
+          key: ${{ runner.os }}-nx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-nx-
+      - name: Install dependencies
+        run: npm ci
       - name: Build affected projects
         run: npm run affected:build -- --base=origin/main
 

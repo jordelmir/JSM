@@ -3,19 +3,26 @@ package com.gasolinerajsm.stationservice.service
 import com.gasolinerajsm.stationservice.controller.CreateStationDto
 import com.gasolinerajsm.stationservice.controller.StationDto
 import com.gasolinerajsm.stationservice.controller.UpdateStationDto
+import com.gasolinerajsm.stationservice.exception.StationNotFoundException
 import com.gasolinerajsm.stationservice.model.Station
+import com.gasolinerajsm.stationservice.model.StationStatus // Import enum
 import com.gasolinerajsm.stationservice.repository.StationRepository
+import org.springframework.dao.EmptyResultDataAccessException // Import this
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
+import com.gasolinerajsm.stationservice.config.StationProperties // Import new properties
 
 @Service
-class StationService(private val stationRepository: StationRepository) {
+class StationService(
+    private val stationRepository: StationRepository,
+    private val stationProperties: StationProperties // Inject properties
+) {
 
     fun findById(id: String): StationDto {
         return stationRepository.findById(id)
             .map { it.toDto() }
-            .orElseThrow { RuntimeException("Station with id $id not found") } // TODO: Use custom exception
+            .orElseThrow { StationNotFoundException(id) } // Use custom exception
     }
 
     fun findAll(): List<StationDto> {
@@ -25,11 +32,11 @@ class StationService(private val stationRepository: StationRepository) {
     @Transactional
     fun create(stationDto: CreateStationDto): StationDto {
         val newStation = Station(
-            id = "stn_" + UUID.randomUUID().toString(),
+            id = stationProperties.idPrefix + UUID.randomUUID().toString(), // Use configurable prefix
             name = stationDto.name,
             latitude = stationDto.latitude,
             longitude = stationDto.longitude,
-            status = "Activa" // Default status
+            status = stationDto.status // Use status from DTO, which has a default
         )
         val savedStation = stationRepository.save(newStation)
         return savedStation.toDto()
@@ -38,7 +45,7 @@ class StationService(private val stationRepository: StationRepository) {
     @Transactional
     fun update(id: String, stationDto: UpdateStationDto): StationDto {
         val existingStation = stationRepository.findById(id)
-            .orElseThrow { RuntimeException("Station with id $id not found") }
+            .orElseThrow { StationNotFoundException(id) }
 
         existingStation.name = stationDto.name ?: existingStation.name
         existingStation.latitude = stationDto.latitude ?: existingStation.latitude
@@ -51,10 +58,11 @@ class StationService(private val stationRepository: StationRepository) {
 
     @Transactional
     fun deleteById(id: String) {
-        if (!stationRepository.existsById(id)) {
-            throw RuntimeException("Station with id $id not found")
+        try {
+            stationRepository.deleteById(id)
+        } catch (ex: EmptyResultDataAccessException) {
+            throw StationNotFoundException(id) // Convert to custom exception
         }
-        stationRepository.deleteById(id)
     }
 }
 

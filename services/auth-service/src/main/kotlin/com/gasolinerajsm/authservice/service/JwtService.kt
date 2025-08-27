@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service
 import java.util.*
 import javax.crypto.SecretKey
 import org.slf4j.LoggerFactory
+import org.springframework.data.redis.core.StringRedisTemplate
+import java.util.concurrent.TimeUnit
 
 /**
  * Service responsible for JWT token operations including generation,
@@ -20,7 +22,8 @@ import org.slf4j.LoggerFactory
 @Service
 class JwtService(
     @Value("\${app.jwt.secret}")
-    private val jwtSecret: String
+    private val jwtSecret: String,
+    private val redisTemplate: StringRedisTemplate
 ) {
 
     companion object {
@@ -30,6 +33,7 @@ class JwtService(
         private const val TOKEN_TYPE_CLAIM = "type"
         private const val ACCESS_TOKEN_TYPE = "access"
         private const val REFRESH_TOKEN_TYPE = "refresh"
+        private const val BLACKLIST_PREFIX = "jwt_blacklist:"
     }
 
     private val key: SecretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
@@ -189,5 +193,15 @@ class JwtService(
             logger.error("Failed to check token type: {}", e.message)
             false
         }
+    }
+
+    fun blacklistToken(token: String) {
+        val claims = Jwts.parser().setSigningKey(jwtSecret.toByteArray()).parseClaimsJws(token).body
+        val expiration = claims.expiration.time - System.currentTimeMillis()
+        redisTemplate.opsForValue().set("$BLACKLIST_PREFIX$token", "", expiration, TimeUnit.MILLISECONDS)
+    }
+
+    fun isTokenBlacklisted(token: String): Boolean {
+        return redisTemplate.hasKey("$BLACKLIST_PREFIX$token")
     }
 }

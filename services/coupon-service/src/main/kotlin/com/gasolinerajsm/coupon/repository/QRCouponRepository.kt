@@ -2,7 +2,11 @@ package com.gasolinerajsm.coupon.repository
 
 import com.gasolinerajsm.coupon.domain.CouponStatus
 import com.gasolinerajsm.coupon.domain.QRCoupon
+import jakarta.persistence.LockModeType
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
@@ -14,9 +18,12 @@ interface QRCouponRepository : JpaRepository<QRCoupon, UUID> {
 
     fun findByQrCode(qrCode: String): QRCoupon?
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    fun findAndLockByQrCode(qrCode: String): QRCoupon?
+
     fun findByToken(token: String): QRCoupon?
 
-    fun findByScannedBy(userId: UUID): List<QRCoupon>
+    fun findByScannedBy(userId: UUID, pageable: Pageable): Page<QRCoupon>
 
     fun findByStationId(stationId: UUID): List<QRCoupon>
 
@@ -37,24 +44,24 @@ interface QRCouponRepository : JpaRepository<QRCoupon, UUID> {
     fun findActiveTicketsForRaffle(): List<QRCoupon>
 
     @Query("""
-        SELECT c.stationId, COUNT(c) as total, SUM(c.totalTickets) as tickets
-        FROM QRCoupon c
-        WHERE c.createdAt BETWEEN :startDate AND :endDate
-        GROUP BY c.stationId
+        SELECT new map(
+            count(c) as totalCoupons,
+            coalesce(sum(c.totalTickets), 0) as totalTickets,
+            count(case when c.status in ('ACTIVATED', 'COMPLETED') then 1 else null end) as activeCoupons,
+            count(case when c.status = 'EXPIRED' then 1 else null end) as expiredCoupons
+        )
+        FROM QRCoupon c WHERE c.stationId = :stationId
     """)
-    fun getStationStats(
-        @Param("startDate") startDate: LocalDateTime,
-        @Param("endDate") endDate: LocalDateTime
-    ): List<Array<Any>>
+    fun getStationStats(@Param("stationId") stationId: UUID): Map<String, Any>
 
     @Query("""
-        SELECT c.employeeId, COUNT(c) as total, SUM(c.totalTickets) as tickets
-        FROM QRCoupon c
-        WHERE c.createdAt BETWEEN :startDate AND :endDate
-        GROUP BY c.employeeId
+        SELECT new map(
+            count(c) as totalCoupons,
+            coalesce(sum(c.totalTickets), 0) as totalTickets,
+            count(c.scannedBy) as scannedCoupons,
+            (cast(count(c.scannedBy) as double) / case when count(c) > 0 then count(c) else 1 end * 100) as conversionRate
+        )
+        FROM QRCoupon c WHERE c.employeeId = :employeeId
     """)
-    fun getEmployeeStats(
-        @Param("startDate") startDate: LocalDateTime,
-        @Param("endDate") endDate: LocalDateTime
-    ): List<Array<Any>>
+    fun getEmployeeStats(@Param("employeeId") employeeId: UUID): Map<String, Any>
 }

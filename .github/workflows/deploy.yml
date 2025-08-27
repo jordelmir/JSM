@@ -2,7 +2,7 @@ name: CD to EKS
 
 on:
   workflow_run:
-    workflows: ["CI/CD Pipeline"]
+    workflows: ["CI"] # Corrected workflow name
     types:
       - completed
 
@@ -10,14 +10,20 @@ env:
   AWS_REGION: us-east-1 # Replace with your desired AWS region
   EKS_CLUSTER_NAME: gasolinera-jsm-cluster # Replace with your EKS cluster name
   ECR_REPOSITORY: <YOUR_ECR_REPO_URL> # Replace with your ECR repository URL
+  # Determine deployment environment based on the branch that triggered the CI workflow
+  DEPLOY_ENV: ${{ github.event.workflow_run.head_branch == 'main' && 'production' || 'staging' }}
 
 jobs:
-  deploy:
+  deploy-microservice:
     runs-on: ubuntu-latest
+    needs: build # Ensure images are built before deploying
     if: "${{ github.event.workflow_run.conclusion == 'success' }}"
     permissions:
       id-token: write # This is required for aws-actions/configure-aws-credentials@v4
       contents: read # This is required for actions/checkout@v3
+    strategy:
+      matrix:
+        service: [auth-service, redemption-service, ad-engine, raffle-service, api-gateway, station-service]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -25,7 +31,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/<YOUR_GITHUB_ACTIONS_OIDC_ROLE> # Replace with your OIDC role ARN
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.GITHUB_ACTIONS_OIDC_ROLE }} # Replace with your OIDC role ARN
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Update Kubeconfig
@@ -36,40 +42,13 @@ jobs:
         with:
           version: 'v3.8.1' # Specify the Helm version
 
-      - name: Deploy Microservices with Helm
+      - name: Lint Helm Chart for ${{ matrix.service }}
+        run: helm lint ./infra/helm/gasolinera-jsm/charts/${{ matrix.service }}
+
+      - name: Deploy ${{ matrix.service }}
         run: |
-          # Deploy auth-service
-          helm upgrade --install auth-service ./infra/helm/gasolinera-jsm/charts/auth-service \
-            --set image.repository=${{ env.ECR_REPOSITORY }}/auth-service \
-            --set image.tag=${{ github.sha }} \
+          helm upgrade --install ${{ matrix.service }} ./infra/helm/gasolinera-jsm/charts/${{ matrix.service }} \
+            --set image.repository=${{ secrets.ECR_REPOSITORY }}/${{ matrix.service }}
+            --set image.tag=${{ github.sha }}
             --namespace default # Or your desired namespace
-
-          # Deploy redemption-service
-          helm upgrade --install redemption-service ./infra/helm/gasolinera-jsm/charts/redemption-service \
-            --set image.repository=${{ env.ECR_REPOSITORY }}/redemption-service \
-            --set image.tag=${{ github.sha }} \
-            --namespace default
-
-          # Deploy ad-engine
-          helm upgrade --install ad-engine ./infra/helm/gasolinera-jsm/charts/ad-engine \
-            --set image.repository=${{ env.ECR_REPOSITORY }}/ad-engine \
-            --set image.tag=${{ github.sha }} \
-            --namespace default
-
-          # Deploy raffle-service
-          helm upgrade --install raffle-service ./infra/helm/gasolinera-jsm/charts/raffle-service \
-            --set image.repository=${{ env.ECR_REPOSITORY }}/raffle-service \
-            --set image.tag=${{ github.sha }} \
-            --namespace default
-
-          # Deploy api-gateway
-          helm upgrade --install api-gateway ./infra/helm/gasolinera-jsm/charts/api-gateway \
-            --set image.repository=${{ env.ECR_REPOSITORY }}/api-gateway \
-            --set image.tag=${{ github.sha }} \
-            --namespace default
-
-          # Deploy station-service
-          helm upgrade --install station-service ./infra/helm/gasolinera-jsm/charts/station-service \
-            --set image.repository=${{ env.ECR_REPOSITORY }}/station-service \
-            --set image.tag=${{ github.sha }} \
-            --namespace default
+            --set environment=${{ env.DEPLOY_ENV }} # Pass environment to Helm chart

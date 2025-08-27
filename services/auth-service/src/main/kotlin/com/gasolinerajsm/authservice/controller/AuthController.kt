@@ -18,6 +18,7 @@ import org.springframework.core.env.Environment
 @RestController
 @RequestMapping("/auth")
 class AuthController(
+    private val authService: AuthService,
     private val jwtService: JwtService,
     private val redisTemplate: StringRedisTemplate,
     private val userService: UserService,
@@ -92,5 +93,12 @@ class AuthController(
 
         logger.info("Advertiser tokens generated for advertiser ID {}", advertiserId)
         return ResponseEntity.ok(TokenResponse(accessToken, refreshToken))
+    }
+
+    @PostMapping("/logout")
+    fun logout(@RequestHeader("Authorization") token: String): ResponseEntity<Void> {
+        val jwt = token.substring(7) // Remove "Bearer " prefix
+        jwtService.blacklistToken(jwt)
+        return ResponseEntity.ok().build()
     }
 }

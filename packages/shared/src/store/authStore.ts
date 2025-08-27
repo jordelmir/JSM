@@ -20,7 +20,7 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      accessToken: null,
+      accessToken: null, // accessToken will be in memory, but not persisted
       isAuthenticated: false,
       login: (userData, token) => set({ user: userData, accessToken: token, isAuthenticated: true }),
       logout: () => {
@@ -31,6 +31,7 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage', // Nombre de la clave en localStorage
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }), // Only persist user and isAuthenticated
     }
   )
 );

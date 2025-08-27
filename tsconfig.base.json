@@ -17,5 +17,10 @@
       "@gasolinera-jsm/shared": ["packages/shared/src/index.ts"]
     }
   },
-  "exclude": ["node_modules", "tmp"]
-}
+  "baseUrl": ".",
+    "paths": {
+      "@gasolinera-jsm/shared": ["packages/shared/src/index.ts"],
+      "@gasolinera-jsm/shared/store/*": ["packages/shared/src/store/*"]
+    }
+  },
+  "exclude": ["node_modules", "tmp]

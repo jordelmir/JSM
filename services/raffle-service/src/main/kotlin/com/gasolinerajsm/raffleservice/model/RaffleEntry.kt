@@ -1,14 +1,14 @@
 package com.gasolinerajsm.raffleservice.model
 
 import jakarta.persistence.*
-import java.time.LocalDateTime
+import java.util.UUID
 
 @Entity
 @Table(name = "raffle_entries")
 data class RaffleEntry(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null,
+    val id: Long? = null,
     val raffleId: Long,
-    val pointId: String, // ID del punto G
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    val pointId: String,
+    val userId: UUID // Add userId to RaffleEntry
 )
