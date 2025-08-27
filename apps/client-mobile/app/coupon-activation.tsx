@@ -34,6 +34,7 @@ export default function CouponActivationScreen() {
   }, [couponId, user?.id]);
 
   const loadSequence = async () => {
+    setIsLoading(true); // Set loading true
     try {
       if (!user?.id || !couponId) return;
 
@@ -42,6 +43,9 @@ export default function CouponActivationScreen() {
       setCurrentStep(sequenceData?.currentStep || 1);
     } catch (error) {
       console.error('Error loading sequence:', error);
+      Alert.alert('Error', 'No se pudo cargar la secuencia de anuncios.'); // User-facing error
+    } finally {
+      setIsLoading(false); // Set loading false
     }
   };
 

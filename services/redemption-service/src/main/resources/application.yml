@@ -39,6 +39,10 @@ spring:
 
 app:
   qr:
+    public.key: ${QR_PUBLIC_KEY:-----BEGIN PUBLIC KEY-----
+...YOUR_PUBLIC_KEY_HERE...
+-----END PUBLIC KEY-----
+    }
     secret: ${QR_SIGNATURE_SECRET}
     security:
       key-factory-algorithm: EC

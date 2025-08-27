@@ -30,7 +30,7 @@ class QRCouponService(
 
     fun generateQRCoupon(request: GenerateQRRequest): QRCoupon {
         val token = tokenGenerator.generateUniqueToken()
-        val qrCode = qrCodeGenerator.generateQRCode(token)
+        val qrCode = qrCodeGenerator.generateQRCode(token) // Keep QR code string generation
         val baseTickets = request.amount // 1 ticket por cada múltiplo de 5000
 
         val coupon = QRCoupon(
@@ -52,6 +52,16 @@ class QRCouponService(
             savedCoupon.id.toString(),
             24,
             TimeUnit.HOURS
+        )
+
+        // Publish event for asynchronous QR image generation
+        rabbitTemplate.convertAndSend(
+            "qr.exchange", // Define a new exchange for QR generation
+            "qr.generate", // Define a new routing key
+            mapOf(
+                "couponId" to savedCoupon.id.toString(),
+                "qrCode" to savedCoupon.qrCode
+            )
         )
 
         return savedCoupon

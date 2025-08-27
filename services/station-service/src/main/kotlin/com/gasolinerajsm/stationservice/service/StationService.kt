@@ -31,13 +31,7 @@ class StationService(
 
     @Transactional
     fun create(stationDto: CreateStationDto): StationDto {
-        val newStation = Station(
-            id = stationProperties.idPrefix + UUID.randomUUID().toString(), // Use configurable prefix
-            name = stationDto.name,
-            latitude = stationDto.latitude,
-            longitude = stationDto.longitude,
-            status = stationDto.status // Use status from DTO, which has a default
-        )
+        val newStation = stationDto.toEntity(stationProperties.idPrefix + UUID.randomUUID().toString())
         val savedStation = stationRepository.save(newStation)
         return savedStation.toDto()
     }
@@ -65,6 +59,15 @@ class StationService(
         }
     }
 }
+
+// Helper extension function to map DTO to Entity
+fun CreateStationDto.toEntity(id: String): Station = Station(
+    id = id,
+    name = this.name,
+    latitude = this.latitude,
+    longitude = this.longitude,
+    status = this.status
+)
 
 // Helper extension function to map Entity to DTO
 fun Station.toDto(): StationDto = StationDto(

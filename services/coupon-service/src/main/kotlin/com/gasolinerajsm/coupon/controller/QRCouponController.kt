@@ -22,13 +22,10 @@ class QRCouponController(
     @PreAuthorize("hasRole('EMPLOYEE') or hasRole('OWNER')")
     fun generateQRCoupon(@Valid @RequestBody request: GenerateQRRequest): ResponseEntity<GenerateQRResponse> {
         val coupon = couponService.generateQRCoupon(request)
-        val qrImage = qrCodeGenerator.generateQRImage(coupon.qrCode)
-        val qrImageBase64 = Base64.getEncoder().encodeToString(qrImage)
 
         val response = GenerateQRResponse(
             couponId = coupon.id,
             qrCode = coupon.qrCode,
-            qrImage = qrImageBase64,
             token = coupon.token,
             baseTickets = coupon.baseTickets,
             expiresAt = coupon.expiresAt

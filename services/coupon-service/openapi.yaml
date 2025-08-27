@@ -1,0 +1,143 @@
+openapi: 3.0.0
+info:
+  title: Coupon Service API
+  version: 1.0.0
+  description: API for managing QR coupons.
+servers:
+  - url: http://localhost:8086
+    description: Local Development Server
+paths:
+  /api/v1/coupons/generate:
+    post:
+      summary: Generate a new QR coupon
+      operationId: generateQRCoupon
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateQRRequest'
+      responses:
+        '200':
+          description: Coupon generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateQRResponse'
+  /api/v1/coupons/scan:
+    post:
+      summary: Scan a QR coupon
+      operationId: scanQRCoupon
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScanQRRequest'
+      responses:
+        '200':
+          description: Coupon scanned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanQRResponse'
+  /api/v1/coupons/activate:
+    post:
+      summary: Activate a scanned coupon
+      operationId: activateCoupon
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivateCouponRequest'
+      responses:
+        '200':
+          description: Coupon activated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivateCouponResponse'
+components:
+  schemas:
+    GenerateQRRequest:
+      type: object
+      required:
+        - stationId
+        - employeeId
+        - amount
+      properties:
+        stationId:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+        amount:
+          type: integer
+    GenerateQRResponse:
+      type: object
+      properties:
+        couponId:
+          type: string
+          format: uuid
+        qrCode:
+          type: string
+        token:
+          type: string
+        baseTickets:
+          type: integer
+        expiresAt:
+          type: string
+          format: date-time
+    ScanQRRequest:
+      type: object
+      required:
+        - qrCode
+        - userId
+      properties:
+        qrCode:
+          type: string
+        userId:
+          type: string
+          format: uuid
+    ScanQRResponse:
+      type: object
+      properties:
+        couponId:
+          type: string
+          format: uuid
+        token:
+          type: string
+        baseTickets:
+          type: integer
+        canActivate:
+          type: boolean
+        message:
+          type: string
+    ActivateCouponRequest:
+      type: object
+      required:
+        - couponId
+        - userId
+      properties:
+        couponId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+    ActivateCouponResponse:
+      type: object
+      properties:
+        couponId:
+          type: string
+          format: uuid
+        token:
+          type: string
+        baseTickets:
+          type: integer
+        nextAdDuration:
+          type: integer
+        message:
+          type: string

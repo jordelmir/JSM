@@ -1,0 +1,120 @@
+openapi: 3.0.0
+info:
+  title: API Gateway
+  version: 1.0.0
+  description: Central entry point for all microservices.
+servers:
+  - url: http://localhost:8080
+    description: Local Development Server
+paths:
+  /auth/otp/request:
+    post:
+      summary: Request OTP via Gateway
+      operationId: requestOtpGateway
+      x-proxy-to: auth-service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpRequest'
+      responses:
+        '200':
+          description: OTP request successful
+  /auth/otp/verify:
+    post:
+      summary: Verify OTP via Gateway
+      operationId: verifyOtpGateway
+      x-proxy-to: auth-service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpVerifyRequest'
+      responses:
+        '200':
+          description: OTP verification successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+  /ads/select:
+    post:
+      summary: Select Ad via Gateway
+      operationId: selectAdGateway
+      x-proxy-to: ad-engine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdSelectionRequest'
+      responses:
+        '200':
+          description: Ad selected
+  /ads/impression:
+    post:
+      summary: Record Ad Impression via Gateway
+      operationId: recordImpressionGateway
+      x-proxy-to: ad-engine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImpressionRequest'
+      responses:
+        '202':
+          description: Impression accepted
+components:
+  schemas:
+    OtpRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+    OtpVerifyRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+        otp:
+          type: string
+    TokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+    AdSelectionRequest:
+      type: object
+      properties:
+        userId:
+          type: integer
+        stationId:
+          type: integer
+        sessionId:
+          type: string
+    ImpressionRequest:
+      type: object
+      properties:
+        userId:
+          type: integer
+        campaignId:
+          type: integer
+        creativeId:
+          type: string
+        stationId:
+          type: integer
+        sessionId:
+          type: string
+        sequenceId:
+          type: integer
+        duration:
+          type: integer
+        completed:
+          type: boolean
+        skipped:
+          type: boolean

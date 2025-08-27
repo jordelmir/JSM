@@ -1,0 +1,155 @@
+openapi: 3.0.0
+info:
+  title: Station Service API
+  version: 1.0.0
+  description: API for managing gas stations.
+servers:
+  - url: http://localhost:8083
+    description: Local Development Server
+paths:
+  /api/v1/stations:
+    get:
+      summary: Get all stations
+      operationId: getAllStations
+      responses:
+        '200':
+          description: List of stations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StationDto'
+    post:
+      summary: Create a new station
+      operationId: createStation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStationDto'
+      responses:
+        '201':
+          description: Station created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StationDto'
+  /api/v1/stations/{id}:
+    get:
+      summary: Get station by ID
+      operationId: getStationById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Station details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StationDto'
+        '404':
+          description: Station not found
+    put:
+      summary: Update an existing station
+      operationId: updateStation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStationDto'
+      responses:
+        '200':
+          description: Station updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StationDto'
+        '404':
+          description: Station not found
+    delete:
+      summary: Delete a station by ID
+      operationId: deleteStation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Station deleted successfully
+        '404':
+          description: Station not found
+components:
+  schemas:
+    StationDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        status:
+          type: string
+          enum:
+            - ACTIVA
+            - INACTIVA
+            - MANTENIMIENTO
+    CreateStationDto:
+      type: object
+      required:
+        - name
+        - latitude
+        - longitude
+      properties:
+        name:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        status:
+          type: string
+          enum:
+            - ACTIVA
+            - INACTIVA
+            - MANTENIMIENTO
+          default: ACTIVA
+    UpdateStationDto:
+      type: object
+      properties:
+        name:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        status:
+          type: string
+          enum:
+            - ACTIVA
+            - INACTIVA
+            - MANTENIMIENTO

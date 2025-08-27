@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Gasolinera JSM Cliente",
-    "slug": "gasolinera-jsm-client",
+    "name": "client-mobile",
+    "slug": "client-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,47 +15,16 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.gasolinerajsm.client"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "package": "com.gasolinerajsm.client",
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
-      ]
+      }
     },
     "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro"
-    },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Permite a la app acceder a tu cámara para escanear códigos QR."
-        }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#ffffff"
-        }
-      ]
-    ],
-    "scheme": "gasolinera-jsm-client",
-    "extra": {
-      "router": {
-        "origin": false
- "eas": {
-        "projectId": "your-project-id"
-      }
+      "favicon": "./assets/favicon.png"
     }
   }
 }

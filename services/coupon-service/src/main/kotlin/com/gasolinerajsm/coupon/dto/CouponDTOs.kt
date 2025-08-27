@@ -20,7 +20,6 @@ data class GenerateQRRequest(
 data class GenerateQRResponse(
     val couponId: UUID,
     val qrCode: String,
-    val qrImage: String, // Base64 encoded image
     val token: String,
     val baseTickets: Int,
     val expiresAt: LocalDateTime

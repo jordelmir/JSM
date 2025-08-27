@@ -1,0 +1,20 @@
+/* v2/src/assets/styles/components/Button.css */
+.custom-button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.custom-button:hover {
+  background-color: #2a65cc; /* Darker shade on hover */
+  transform: translateY(-1px);
+}
+
+.custom-button:active {
+  transform: translateY(0);
+}

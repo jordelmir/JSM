@@ -12,15 +12,21 @@ import org.springframework.web.bind.annotation.*
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
+import org.springframework.kafka.core.KafkaTemplate // Import KafkaTemplate
 
 @RestController
 @RequestMapping("/ad")
 class AdController(
     private val adSelectionService: AdSelectionService,
-    private val adImpressionRepository: AdImpressionRepository
+    private val adImpressionRepository: AdImpressionRepository,
+    private val kafkaTemplate: KafkaTemplate<String, ImpressionRequest> // Inject KafkaTemplate
 ) {
 
     private val logger = LoggerFactory.getLogger(AdController::class.java)
+
+    companion object {
+        private const val IMPRESSION_TOPIC = "ad-impressions-topic"
+    }
 
     @PostMapping("/select")
     fun selectAd(@Valid @RequestBody request: AdSelectionRequest): ResponseEntity<AdCreativeResponse> {
@@ -30,19 +36,9 @@ class AdController(
 
     @PostMapping("/impression")
     fun recordImpression(@Valid @RequestBody request: ImpressionRequest): ResponseEntity<Void> {
-        val adImpression = AdImpression(
-            userId = request.userId,
-            campaignId = request.campaignId,
-            creativeId = request.creativeId,
-            stationId = request.stationId,
-            sessionId = request.sessionId,
-            sequenceId = request.sequenceId,
-            duration = request.duration,
-            completed = request.completed,
-            skipped = request.skipped
-        )
-        adImpressionRepository.save(adImpression)
-        return ResponseEntity.ok().build()
+        logger.info("Received impression request for session: {}", request.sessionId)
+        kafkaTemplate.send(IMPRESSION_TOPIC, request.sessionId, request) // Send to Kafka
+        return ResponseEntity.accepted().build() // Return 202 Accepted
     }
 
     @GetMapping("/impressions")

@@ -63,6 +63,21 @@ Gasolinera JSM es una plataforma de microservicios diseñada para digitalizar y 
    - Escaneo de códigos QR
    - Programa de fidelización
 
+4. **Gasolinera JSM v2 (Web Application)**
+   - Migrated to Vite, React, and TypeScript for a modern development experience.
+   - Utilizes Tailwind CSS for a utility-first approach to styling, including dark mode support.
+   - Implements Progressive Web App (PWA) features for enhanced user experience (offline support, installability).
+   - Supports Internationalization (i18n) for multi-language support.
+   - Incorporates ethical analytics for usage insights without tracking personal data.
+   - Follows best practices for Accessibility (a11y) to ensure WCAG AA compliance.
+
+### Frontend Design Patterns (Gasolinera JSM v2)
+
+- **Factory Pattern**: Used in `core/payment.ts` for creating different payment strategies.
+- **Observer Pattern**: Implemented via `core/eventBus.ts` for decoupled communication between components.
+- **Singleton Pattern**: Applied to `core/logger.ts` and `core/analytics.ts` to ensure a single instance of these services.
+- **Facade Pattern**: Utilized in `services/apiFacade.ts` to provide a simplified interface to complex API interactions.
+
 ### Infraestructura
 
 - **PostgreSQL**: Base de datos principal

@@ -1,0 +1,74 @@
+openapi: 3.0.0
+info:
+  title: Auth Service API
+  version: 1.0.0
+  description: API for user authentication and authorization.
+servers:
+  - url: http://localhost:8081
+    description: Local Development Server
+paths:
+  /auth/otp/request:
+    post:
+      summary: Request OTP
+      operationId: requestOtp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpRequest'
+      responses:
+        '200':
+          description: OTP request successful
+        '400':
+          description: Invalid request
+  /auth/otp/verify:
+    post:
+      summary: Verify OTP and get tokens
+      operationId: verifyOtp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpVerifyRequest'
+      responses:
+        '200':
+          description: OTP verification successful, returns tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Invalid OTP or request
+components:
+  schemas:
+    OtpRequest:
+      type: object
+      required:
+        - phone
+      properties:
+        phone:
+          type: string
+          example: '+1234567890'
+    OtpVerifyRequest:
+      type: object
+      required:
+        - phone
+        - otp
+      properties:
+        phone:
+          type: string
+          example: '+1234567890'
+        otp:
+          type: string
+          example: '123456'
+    TokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+        refreshToken:
+          type: string
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'

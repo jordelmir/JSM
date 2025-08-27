@@ -1,0 +1,12 @@
+/* v2/src/assets/styles/themes/dark-theme.css */
+
+/* This file would contain overrides for dark mode if not handled purely by prefers-color-scheme */
+/* Example: */
+/*
+.dark-theme {
+  --bg: #1a1a1a;
+  --text: #f0f0f0;
+  --card-bg: #2a2a2a;
+  --border-color: #444;
+}
+*/

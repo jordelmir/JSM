@@ -1,0 +1,103 @@
+openapi: 3.0.0
+info:
+  title: Ad Engine Service API
+  version: 1.0.0
+  description: API for ad selection and impression recording.
+servers:
+  - url: http://localhost:8084
+    description: Local Development Server
+paths:
+  /ad/select:
+    post:
+      summary: Select an ad creative
+      operationId: selectAd
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdSelectionRequest'
+      responses:
+        '200':
+          description: Ad creative selected successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdCreativeResponse'
+        '404':
+          description: No active campaigns found
+  /ad/impression:
+    post:
+      summary: Record an ad impression
+      operationId: recordImpression
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImpressionRequest'
+      responses:
+        '202':
+          description: Impression recorded asynchronously
+components:
+  schemas:
+    AdSelectionRequest:
+      type: object
+      required:
+        - userId
+        - stationId
+        - sessionId
+      properties:
+        userId:
+          type: integer
+          format: int64
+        stationId:
+          type: integer
+          format: int64
+        sessionId:
+          type: string
+    AdCreativeResponse:
+      type: object
+      properties:
+        adUrl:
+          type: string
+        campaignId:
+          type: integer
+          format: int64
+        creativeId:
+          type: string
+    ImpressionRequest:
+      type: object
+      required:
+        - userId
+        - campaignId
+        - creativeId
+        - stationId
+        - sessionId
+        - duration
+        - completed
+        - skipped
+      properties:
+        userId:
+          type: integer
+          format: int64
+        campaignId:
+          type: integer
+          format: int64
+        creativeId:
+          type: string
+        stationId:
+          type: integer
+          format: int64
+        sessionId:
+          type: string
+        sequenceId:
+          type: integer
+          format: int64
+        duration:
+          type: integer
+          format: int64
+        completed:
+          type: boolean
+        skipped:
+          type: boolean

@@ -16,8 +16,13 @@
 git clone https://github.com/jordelmir/gasolinera-jsm-ultimate.git
 cd gasolinera-jsm-ultimate
 
-# Instalar dependencias
+# Instalar dependencias para el proyecto principal
 npm install
+
+# Instalar dependencias para la aplicación frontend v2
+cd v2
+npm install
+cd ..
 
 # Configurar variables de entorno
 cp .env.example .env
@@ -32,8 +37,9 @@ make dev
 gasolinera-jsm-ultimate/
 ├── apps/                    # Aplicaciones frontend
 │   ├── admin/              # Dashboard administrativo
-│   ├── advertiser/         # Portal de anunciantes
-│   └── mobile/             # App móvil React Native
+│   │   ├── advertiser/         # Portal de anunciantes
+│   │   └── mobile/             # App móvil React Native
+│   └── v2/                   # Aplicación web moderna (Vite, React, TypeScript)
 ├── services/               # Microservicios backend
 │   ├── api-gateway/        # Gateway principal
 │   ├── auth-service/       # Servicio de autenticación
@@ -77,12 +83,13 @@ interface ComponentProps {
   isVisible?: boolean;
 }
 
-// Componentes funcionales con hooks
+// Componentes funcionales con hooks y Tailwind CSS
 const Component: React.FC<ComponentProps> = ({ title, isVisible = true }) => {
+  const { t } = useTranslation(); // Ejemplo de i18n
   const [state, setState] = useState<string>('');
 
   return (
-    <div className="container mx-auto">{isVisible && <h1>{title}</h1>}</div>
+    <div className="container mx-auto p-4 bg-white dark:bg-gray-800">{isVisible && <h1>{t(title)}</h1>}</div>
   );
 };
 ```
@@ -114,14 +121,19 @@ class UserService(
 ### Frontend Tests
 
 ```bash
-# Ejecutar tests de un proyecto específico
+# Ejecutar tests de un proyecto específico (ej. admin)
 npm run nx -- test admin
 
+# Ejecutar tests para la aplicación v2
+cd v2
+npm test
 # Tests con coverage
-npm run nx -- test admin --coverage
-
+npm run coverage
 # Tests en modo watch
-npm run nx -- test admin --watch
+npm run test -- --watch
+# Tests E2E con Playwright
+npm run test:ui
+cd ..
 ```
 
 ### Backend Tests
@@ -144,6 +156,9 @@ make test
 ```bash
 make dev              # Levantar entorno completo
 make dev-frontend     # Solo frontends en modo dev
+cd v2
+npm run dev           # Iniciar el servidor de desarrollo de la aplicación v2
+cd ..
 make logs             # Ver logs de todos los servicios
 make stop             # Parar servicios
 make clean            # Limpiar completamente
@@ -233,6 +248,10 @@ git merge develop
 git tag v1.0.0
 git push origin main --tags
 ```
+
+### Deploy de la aplicación v2 a GitHub Pages
+
+La aplicación frontend v2 se despliega automáticamente a GitHub Pages en cada push a la rama `main` a través de GitHub Actions. El workflow se encuentra en `.github/workflows/ci.yml` dentro del directorio `v2`.
 
 ## Recursos Adicionales
 

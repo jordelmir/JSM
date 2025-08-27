@@ -8,7 +8,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8
  * @throws {Error} If the network response is not ok.
  */
 async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const token = useAuthStore.getState().token;
+  const token = useAuthStore.getState().accessToken;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -30,6 +30,7 @@ async function apiFetch(endpoint: string, options: RequestInit = {}) {
       const errorBody = await response.json();
       errorMessage = errorBody.message || errorMessage;
     } catch (e) {
+      console.error('Error parsing error response:', e); // Log the parsing error
       // Ignore if error body is not JSON
     }
     throw new Error(errorMessage);
@@ -38,13 +39,7 @@ async function apiFetch(endpoint: string, options: RequestInit = {}) {
   return response.status === 204 ? null : response.json();
 }
 
-// --- Authentication --- //
-export const loginAdmin = (email: string, pass: string) => {
-  return apiFetch('/auth/login/admin', {
-    method: 'POST',
-    body: JSON.stringify({ email, pass }),
-  });
-};
+
 
 // --- Stations --- //
 export type Station = {

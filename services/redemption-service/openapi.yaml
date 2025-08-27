@@ -1,0 +1,86 @@
+openapi: 3.0.0
+info:
+  title: Redemption Service API
+  version: 1.0.0
+  description: API for managing coupon redemptions and ad confirmations.
+servers:
+  - url: http://localhost:8082
+    description: Local Development Server
+paths:
+  /redeem:
+    post:
+      summary: Initiate a coupon redemption
+      operationId: initiateRedemption
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedeemCommand'
+      responses:
+        '200':
+          description: Redemption initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedemptionResult'
+        '400':
+          description: Invalid QR token or request
+  /redeem/confirm-ad:
+    post:
+      summary: Confirm ad watched and credit points
+      operationId: confirmAdWatched
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmAdRequest'
+      responses:
+        '200':
+          description: Ad confirmed and points credited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmAdResponse'
+        '400':
+          description: Invalid session ID or request
+components:
+  schemas:
+    RedeemCommand:
+      type: object
+      required:
+        - qrToken
+        - userId
+      properties:
+        qrToken:
+          type: string
+        userId:
+          type: string
+    RedemptionResult:
+      type: object
+      properties:
+        redemptionId:
+          type: string
+          format: uuid
+        status:
+          type: string
+        adUrl:
+          type: string
+        campaignId:
+          type: integer
+          format: int64
+        creativeId:
+          type: string
+    ConfirmAdRequest:
+      type: object
+      required:
+        - sessionId
+      properties:
+        sessionId:
+          type: string
+    ConfirmAdResponse:
+      type: object
+      properties:
+        balance:
+          type: integer

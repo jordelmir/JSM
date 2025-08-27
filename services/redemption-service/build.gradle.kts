@@ -27,6 +27,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-amqp") // RabbitMQ
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.retry:spring-retry") // For retry mechanism
+    implementation("org.springframework.boot:spring-boot-starter-aop") // For @Retryable annotation
     implementation("org.springframework.cloud:spring-cloud-starter-vault-config:4.1.3")
     implementation(project(":packages:temp-sdk")) // NEW: Temporary SDK for API clients
 

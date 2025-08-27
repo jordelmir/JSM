@@ -1,12 +1,8 @@
 // Ruta: apps/admin/src/store/authStore.ts
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+import { User } from '../index'; // Import the shared User interface
+import axios from 'axios'; // Import axios
 
 interface AuthState {
   user: User | null;
@@ -23,8 +19,21 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null, // accessToken will be in memory, but not persisted
       isAuthenticated: false,
       login: (userData, token) => set({ user: userData, accessToken: token, isAuthenticated: true }),
-      logout: () => {
-        // También podrías añadir una llamada a la API /auth/logout aquí
+      logout: async () => {
+        // Call API to invalidate token on server-side
+        const token = useAuthStore.getState().accessToken;
+        if (token) {
+          try {
+            await axios.post('/api/auth/logout', null, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+          } catch (error) {
+            console.error('Error during server-side logout:', error);
+            // Handle error, but still clear local state
+          }
+        }
         set({ user: null, accessToken: null, isAuthenticated: false });
       },
     }),

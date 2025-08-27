@@ -106,25 +106,29 @@ class JwtService(
      */
     fun validateToken(token: String): Boolean {
         return try {
-            val claims = Jwts.parserBuilder()
+            Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
-                .body
-
-            // Check if token is not expired
-            val expiration = claims.expiration
-            val now = Date()
-
-            if (expiration.before(now)) {
-                logger.warn("Token has expired")
-                return false
-            }
-
             logger.debug("Token validated successfully")
             true
+        } catch (e: io.jsonwebtoken.ExpiredJwtException) {
+            logger.warn("Token has expired: {}", e.message)
+            false
+        } catch (e: io.jsonwebtoken.SignatureException) {
+            logger.warn("Invalid JWT signature: {}", e.message)
+            false
+        } catch (e: io.jsonwebtoken.MalformedJwtException) {
+            logger.warn("Malformed JWT: {}", e.message)
+            false
+        } catch (e: io.jsonwebtoken.UnsupportedJwtException) {
+            logger.warn("Unsupported JWT: {}", e.message)
+            false
+        } catch (e: io.jsonwebtoken.IllegalArgumentException) {
+            logger.warn("JWT claims string is empty: {}", e.message)
+            false
         } catch (e: Exception) {
-            logger.warn("Token validation failed: {}", e.message)
+            logger.error("An unexpected error occurred during token validation: {}", e.message)
             false
         }
     }
