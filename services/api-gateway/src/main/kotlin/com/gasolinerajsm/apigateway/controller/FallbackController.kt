@@ -11,9 +11,13 @@ import java.time.LocalDateTime
 /**
  * Fallback controller for circuit breaker patterns
  */
+import org.springframework.web.server.ServerWebExchange // Import ServerWebExchange
+import com.gasolinerajsm.apigateway.exception.ErrorResponse // Import ErrorResponse
+import java.time.LocalDateTime // Ensure LocalDateTime is imported
+
 @RestController
 @RequestMapping("/fallback")
-class FallbackController {
+class FallbackController(private val exchange: ServerWebExchange) { // Inject ServerWebExchange
 
     private val logger = LoggerFactory.getLogger(FallbackController::class.java)
 
@@ -21,66 +25,63 @@ class FallbackController {
      * Fallback for ad engine service
      */
     @GetMapping("/ads")
-    fun adEngineFallback(): ResponseEntity<FallbackResponse> {
-        logger.warn("Ad Engine service is unavailable, returning fallback response")
+    fun adEngineFallback(): ResponseEntity<ErrorResponse> {
+        val path = exchange.request.path.value()
+        val method = exchange.request.method?.name() ?: "UNKNOWN"
+        logger.warn("Ad Engine service is unavailable for {} {}, returning fallback response", method, path)
 
-        val response = FallbackResponse(
-            message = "Ad Engine service is temporarily unavailable",
-            service = "ad-engine",
+        val errorResponse = ErrorResponse(
             timestamp = LocalDateTime.now(),
-            fallbackData = mapOf(
-                "ads" to emptyList<Any>(),
-                "campaigns" to emptyList<Any>()
-            )
+            status = HttpStatus.SERVICE_UNAVAILABLE.value(),
+            error = "Service Unavailable",
+            message = "Ad Engine service is temporarily unavailable. Please try again later.",
+            path = path,
+            method = method
         )
 
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response)
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse)
     }
 
     /**
      * Fallback for raffle service
      */
     @GetMapping("/raffles")
-    fun raffleServiceFallback(): ResponseEntity<FallbackResponse> {
-        logger.warn("Raffle service is unavailable, returning fallback response")
+    fun raffleServiceFallback(): ResponseEntity<ErrorResponse> {
+        val path = exchange.request.path.value()
+        val method = exchange.request.method?.name() ?: "UNKNOWN"
+        logger.warn("Raffle service is unavailable for {} {}, returning fallback response", method, path)
 
-        val response = FallbackResponse(
-            message = "Raffle service is temporarily unavailable",
-            service = "raffle-service",
+        val errorResponse = ErrorResponse(
             timestamp = LocalDateTime.now(),
-            fallbackData = mapOf(
-                "raffles" to emptyList<Any>(),
-                "activeRaffles" to 0
-            )
+            status = HttpStatus.SERVICE_UNAVAILABLE.value(),
+            error = "Service Unavailable",
+            message = "Raffle service is temporarily unavailable. Please try again later.",
+            path = path,
+            method = method
         )
 
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response)
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse)
     }
 
     /**
      * Generic fallback for any service
      */
     @GetMapping("/generic")
-    fun genericFallback(): ResponseEntity<FallbackResponse> {
-        logger.warn("Service is unavailable, returning generic fallback response")
+    fun genericFallback(): ResponseEntity<ErrorResponse> {
+        val path = exchange.request.path.value()
+        val method = exchange.request.method?.name() ?: "UNKNOWN"
+        logger.warn("Service is unavailable for {} {}, returning generic fallback response", method, path)
 
-        val response = FallbackResponse(
-            message = "Service is temporarily unavailable",
-            service = "unknown",
+        val errorResponse = ErrorResponse(
             timestamp = LocalDateTime.now(),
-            fallbackData = emptyMap()
+            status = HttpStatus.SERVICE_UNAVAILABLE.value(),
+            error = "Service Unavailable",
+            message = "Service is temporarily unavailable. Please try again later.",
+            path = path,
+            method = method
         )
 
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response)
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse)
     }
 }
 
-/**
- * Fallback response data class
- */
-data class FallbackResponse(
-    val message: String,
-    val service: String,
-    val timestamp: LocalDateTime,
-    val fallbackData: Map<String, Any>
-)

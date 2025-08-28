@@ -7,6 +7,7 @@ import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
+import com.gasolinerajsm.common.api.ApiResponse // Import ApiResponse
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -20,7 +21,7 @@ class QRCouponController(
 
     @PostMapping("/generate")
     @PreAuthorize("hasRole('EMPLOYEE') or hasRole('OWNER')")
-    fun generateQRCoupon(@Valid @RequestBody request: GenerateQRRequest): ResponseEntity<GenerateQRResponse> {
+    fun generateQRCoupon(@Valid @RequestBody request: GenerateQRRequest): ResponseEntity<ApiResponse<GenerateQRResponse>> {
         val coupon = couponService.generateQRCoupon(request)
 
         val response = GenerateQRResponse(
@@ -31,7 +32,7 @@ class QRCouponController(
             expiresAt = coupon.expiresAt
         )
 
-        return ResponseEntity.ok(response)
+        return ResponseEntity.ok(ApiResponse(data = response)) // Wrap in ApiResponse
     }
 
     @PostMapping("/scan")

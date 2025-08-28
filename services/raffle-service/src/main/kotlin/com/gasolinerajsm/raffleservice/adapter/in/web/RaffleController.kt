@@ -4,7 +4,7 @@ import com.gasolinerajsm.raffleservice.adapter.in.web.dto.CreateRaffleRequest
 import com.gasolinerajsm.raffleservice.adapter.in.web.dto.DrawRaffleRequest
 import com.gasolinerajsm.raffleservice.application.RaffleCreationService
 import com.gasolinerajsm.raffleservice.application.RaffleDrawingService
-import com.gasolinerajsm.raffleservice.domain.model.Raffle
+import com.gasolinerajsm.raffleservice.model.Raffle
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable

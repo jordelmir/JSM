@@ -14,17 +14,22 @@ data class CampaignPerformanceSummaryDto(
     val totalBudgetSpent: Double
 )
 
+import org.springframework.cache.annotation.Cacheable // Import Cacheable
+import org.springframework.cache.annotation.CacheEvict // Import CacheEvict
+
 @Service
 class CampaignService(
     private val adCampaignRepository: AdCampaignRepository,
     private val adImpressionRepository: AdImpressionRepository
 ) {
 
+    @Cacheable(value = ["advertiserCampaigns"], key = "#advertiserId")
     fun getCampaignsForAdvertiser(advertiserId: String): List<CampaignDto> {
         return adCampaignRepository.findByAdvertiserId(advertiserId).map { it.toDto() }
     }
 
     @Transactional
+    @CacheEvict(value = ["advertiserCampaigns", "campaignPerformanceSummary"], key = "#advertiserId", allEntries = false)
     fun createCampaign(advertiserId: String, dto: CreateCampaignDto): CampaignDto {
         val campaign = AdCampaign(
             name = dto.name,
@@ -38,6 +43,7 @@ class CampaignService(
         return savedCampaign.toDto()
     }
 
+    @Cacheable(value = ["campaignPerformanceSummary"], key = "#advertiserId")
     fun getPerformanceSummaryForAdvertiser(advertiserId: String): CampaignPerformanceSummaryDto {
         // TODO: Implement real aggregation logic
         // For now, return mock data

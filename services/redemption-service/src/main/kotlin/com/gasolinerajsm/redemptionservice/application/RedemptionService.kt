@@ -11,6 +11,7 @@ import com.gasolinerajsm.redemptionservice.domain.model.PointsLedgerEntry
 import com.gasolinerajsm.redemptionservice.domain.repository.PointsLedgerRepository
 import com.gasolinerajsm.sdk.adengine.api.AdApi
 import com.gasolinerajsm.sdk.adengine.model.AdSelectionRequest
+import com.gasolinerajsm.sdk.adengine.model.ImpressionRequest // Import ImpressionRequest
 import org.slf4j.LoggerFactory
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Counter
@@ -58,16 +59,27 @@ class RedemptionService(
 
         // 2. Seleccionar anuncio usando el SDK
         val adSelectionRequest = AdSelectionRequest(
-            user_id = command.userId,
-            station_id = verifiedQr.s,
-            context = emptyMap() // Opcional: añadir contexto si es necesario
+            userId = command.userId, // userId is now Long
+            stationId = verifiedQr.s, // stationId is now Long
+            sessionId = verifiedQr.n // Use nonce as sessionId as per OpenAPI spec
         )
-        val adCreative = adApi.selectAd(adSelectionRequest)
-            ?: run {
-                logger.error("Failed to select ad for userId: {}", command.userId)
-                redemptionsFailedTotal.increment()
-                throw IllegalStateException("Failed to select ad")
-            }
+        val adCreative = try {
+            // val circuitBreaker = CircuitBreakerRegistry.ofDefaults().circuitBreaker("adEngineSelectAd")
+            // val retry = RetryRegistry.ofDefaults().retry("adEngineSelectAdRetry")
+            // return Decorators.ofSupplier { adApi.selectAd(adSelectionRequest) }
+            //     .withCircuitBreaker(circuitBreaker)
+            //     .withRetry(retry)
+            //     .get()
+            adApi.selectAd(adSelectionRequest) // Original call
+        } catch (e: Exception) {
+            logger.error("Failed to select ad for userId: {} due to external service error: {}", command.userId, e.message)
+            redemptionsFailedTotal.increment()
+            throw IllegalStateException("Failed to select ad from external service", e)
+        } ?: run {
+            logger.error("Failed to select ad for userId: {} - adCreative is null", command.userId)
+            redemptionsFailedTotal.increment()
+            throw IllegalStateException("Failed to select ad: adCreative is null")
+        }
 
         redemptionRepository.save(redemption)
         logger.info("Redemption aggregate saved with ID: {}", redemption.id)
@@ -104,9 +116,9 @@ class RedemptionService(
         return RedemptionResult(
             redemptionId = redemption.id,
             status = "PENDING_AD_VIEW",
-            adUrl = adCreative.creative_url,
-            campaignId = 0, // Dato no disponible
-            creativeId = "" // Dato no disponible
+            adUrl = adCreative.adUrl, // Use adUrl from AdCreativeResponse
+            campaignId = adCreative.campaignId, // Use campaignId from AdCreativeResponse
+            creativeId = adCreative.creativeId // Use creativeId from AdCreativeResponse
         )
     }
 
@@ -120,7 +132,30 @@ class RedemptionService(
         val impressionUrl = sessionData["impressionUrl"] ?: run { logger.warn("Impression URL not found in session for sessionId: {}", sessionId); throw IllegalStateException("Impression URL not found in session for $sessionId") }
 
         logger.info("Recording ad impression for userId: {}", userId)
-        adApi.recordImpression(impressionUrl)
+        // Construct ImpressionRequest based on OpenAPI spec
+        val impressionRequest = ImpressionRequest(
+            userId = userId.toLong(), // Assuming userId from session is String and needs conversion
+            campaignId = 0, // Placeholder: Needs to be retrieved from adCreative or session
+            creativeId = "", // Placeholder: Needs to be retrieved from adCreative or session
+            stationId = 0, // Placeholder: Needs to be retrieved from adCreative or session
+            sessionId = sessionId,
+            duration = 0, // Placeholder: Needs to be tracked
+            completed = true, // Placeholder: Needs to be determined
+            skipped = false // Placeholder: Needs to be determined
+        )
+        // Conceptual Circuit Breaker and Retry for adApi.recordImpression
+        try {
+            // val circuitBreaker = CircuitBreakerRegistry.ofDefaults().circuitBreaker("adEngineRecordImpression")
+            // val retry = RetryRegistry.ofDefaults().retry("adEngineRecordImpressionRetry")
+            // Decorators.ofRunnable { adApi.recordImpression(impressionRequest) }
+            //     .withCircuitBreaker(circuitBreaker)
+            //     .withRetry(retry)
+            //     .run()
+            adApi.recordImpression(impressionRequest) // Original call
+        } catch (e: Exception) {
+            logger.error("Failed to record ad impression for userId: {} due to external service error: {}", userId, e.message)
+            // Decide on fallback action: e.g., publish to dead-letter queue, log, or ignore
+        }
 
         val pointsToCredit = 25
         val redemptionId = UUID.fromString(sessionId)

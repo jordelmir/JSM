@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Add useEffect
 import {
   BuildingStorefrontIcon,
   PlusIcon,
@@ -11,92 +11,60 @@ import {
   CheckIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify'; // Import toast
+import {
+  getStations,
+  createStation,
+  updateStation,
+  deleteStation,
+  Station, // Import Station interface
+  CreateStationDto, // Import CreateStationDto
+  UpdateStationDto, // Import UpdateStationDto
+} from '@/lib/stationApiClient'; // Import API client
 
-interface Station {
-  id: string;
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  isActive: boolean;
-  employeeCount: number;
-  todayTickets: number;
-  todayRevenue: number;
-  conversionRate: number;
-}
-
-interface NewStationForm {
-  name: string;
-  address: string;
-  latitude: string;
-  longitude: string;
-}
-
-const mockStations: Station[] = [
-  {
-    id: '1',
-    name: 'Gasolinera JSM Centro',
-    address: 'Avenida Central, San José, Costa Rica',
-    latitude: 9.9281,
-    longitude: -84.0907,
-    isActive: true,
-    employeeCount: 8,
-    todayTickets: 245,
-    todayRevenue: 612500,
-    conversionRate: 78.5,
-  },
-  {
-    id: '2',
-    name: 'Gasolinera JSM Norte',
-    address: 'Barrio Escalante, San José, Costa Rica',
-    latitude: 9.935,
-    longitude: -84.085,
-    isActive: true,
-    employeeCount: 6,
-    todayTickets: 198,
-    todayRevenue: 495000,
-    conversionRate: 82.3,
-  },
-  {
-    id: '3',
-    name: 'Gasolinera JSM Sur',
-    address: 'Desamparados, San José, Costa Rica',
-    latitude: 9.9,
-    longitude: -84.07,
-    isActive: true,
-    employeeCount: 5,
-    todayTickets: 167,
-    todayRevenue: 417500,
-    conversionRate: 75.2,
-  },
-];
+// Remove mockStations
 
 export default function StationsPage() {
-  const [stations, setStations] = useState<Station[]>(mockStations);
+  const [stations, setStations] = useState<Station[]>([]); // Initialize with empty array
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingStation, setEditingStation] = useState<Station | null>(null);
-  const [newStation, setNewStation] = useState<NewStationForm>({
+  const [newStation, setNewStation] = useState<CreateStationDto>({ // Use CreateStationDto
     name: '',
-    address: '',
-    latitude: '',
-    longitude: '',
+    latitude: 0, // Initialize with number
+    longitude: 0, // Initialize with number
   });
-  const [errors, setErrors] = useState<Partial<NewStationForm>>({});
+  const [errors, setErrors] = useState<Partial<CreateStationDto>>({}); // Use CreateStationDto
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [error, setError] = useState<string | null>(null); // Add error state
 
-  const validateForm = (form: NewStationForm): boolean => {
-    const newErrors: Partial<NewStationForm> = {};
+  useEffect(() => {
+    const fetchStations = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getStations();
+        setStations(data);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch stations.');
+        toast.error(err.message || 'Failed to fetch stations.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStations();
+  }, []); // Fetch on mount
+
+  const validateForm = (form: CreateStationDto): boolean => { // Use CreateStationDto
+    const newErrors: Partial<CreateStationDto> = {}; // Use CreateStationDto
 
     if (!form.name.trim()) {
       newErrors.name = 'El nombre es requerido';
     }
-    if (!form.address.trim()) {
-      newErrors.address = 'La dirección es requerida';
-    }
-    if (!form.latitude || isNaN(parseFloat(form.latitude))) {
+    // Removed address validation as it's not in the DTO
+    if (isNaN(form.latitude)) { // Check if it's a number
       newErrors.latitude = 'Latitud válida requerida';
     }
-    if (!form.longitude || isNaN(parseFloat(form.longitude))) {
+    if (isNaN(form.longitude)) { // Check if it's a number
       newErrors.longitude = 'Longitud válida requerida';
     }
 
@@ -108,31 +76,24 @@ export default function StationsPage() {
     if (!validateForm(newStation)) return;
 
     setIsSubmitting(true);
-
-    // Simular llamada a API
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const station: Station = {
-      id: Date.now().toString(),
-      name: newStation.name,
-      address: newStation.address,
-      latitude: parseFloat(newStation.latitude),
-      longitude: parseFloat(newStation.longitude),
-      isActive: true,
-      employeeCount: 0,
-      todayTickets: 0,
-      todayRevenue: 0,
-      conversionRate: 0,
-    };
-
-    setStations([...stations, station]);
-    setNewStation({ name: '', address: '', latitude: '', longitude: '' });
-    setErrors({});
-    setShowAddModal(false);
-    setIsSubmitting(false);
-
-    // Mostrar notificación de éxito
-    alert('¡Estación creada exitosamente!');
+    try {
+      const created = await createStation({
+        name: newStation.name,
+        latitude: newStation.latitude,
+        longitude: newStation.longitude,
+        // status will default in backend
+      });
+      setStations((prev) => [...prev, created]);
+      setNewStation({ name: '', latitude: 0, longitude: 0 }); // Reset form
+      setErrors({});
+      setShowAddModal(false);
+      toast.success('¡Estación creada exitosamente!');
+    } catch (err: any) {
+      console.error('Error creating station:', err);
+      toast.error(err.message || 'Error al crear estación.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleEditStation = (station: Station) => {
@@ -143,17 +104,24 @@ export default function StationsPage() {
     if (!editingStation) return;
 
     setIsSubmitting(true);
-
-    // Simular llamada a API
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    setStations(
-      stations.map((s) => (s.id === editingStation.id ? editingStation : s))
-    );
-    setEditingStation(null);
-    setIsSubmitting(false);
-
-    alert('¡Estación actualizada exitosamente!');
+    try {
+      const updated = await updateStation(editingStation.id, {
+        name: editingStation.name,
+        latitude: editingStation.latitude,
+        longitude: editingStation.longitude,
+        status: editingStation.status,
+      });
+      setStations((prev) =>
+        prev.map((s) => (s.id === updated.id ? updated : s))
+      );
+      setEditingStation(null);
+      toast.success('¡Estación actualizada exitosamente!');
+    } catch (err: any) {
+      console.error('Error updating station:', err);
+      toast.error(err.message || 'Error al actualizar estación.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDeleteStation = async (id: string) => {
@@ -165,24 +133,34 @@ export default function StationsPage() {
       return;
     }
 
-    // Simular llamada a API
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setStations(stations.filter((s) => s.id !== id));
-    alert('Estación eliminada exitosamente');
+    try {
+      await deleteStation(id);
+      setStations((prev) => prev.filter((s) => s.id !== id));
+      toast.success('Estación eliminada exitosamente');
+    } catch (err: any) {
+      console.error('Error deleting station:', err);
+      toast.error(err.message || 'Error al eliminar estación.');
+    }
   };
 
   const toggleStationStatus = async (id: string) => {
-    // Simular llamada a API
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    try {
+      const stationToUpdate = stations.find((s) => s.id === id);
+      if (!stationToUpdate) return;
 
-    setStations(
-      stations.map((s) => (s.id === id ? { ...s, isActive: !s.isActive } : s))
-    );
+      const updated = await updateStation(id, { status: stationToUpdate.status === 'ACTIVA' ? 'INACTIVA' : 'ACTIVA' }); // Toggle status
+      setStations((prev) =>
+        prev.map((s) => (s.id === updated.id ? updated : s))
+      );
+      toast.success('Estado de la estación actualizado.');
+    } catch (err: any) {
+      console.error('Error toggling station status:', err);
+      toast.error(err.message || 'Error al actualizar el estado de la estación.');
+    }
   };
 
   const resetForm = () => {
-    setNewStation({ name: '', address: '', latitude: '', longitude: '' });
+    setNewStation({ name: '', latitude: 0, longitude: 0 }); // Reset to numbers
     setErrors({});
     setShowAddModal(false);
   };
@@ -436,31 +414,6 @@ export default function StationsPage() {
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Dirección Completa *
-                </label>
-                <textarea
-                  value={newStation.address}
-                  onChange={(e) =>
-                    setNewStation({ ...newStation, address: e.target.value })
-                  }
-                  className={`w-full border-2 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-200 resize-none ${
-                    errors.address
-                      ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50'
-                      : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white'
-                  }`}
-                  rows={3}
-                  placeholder="Ej: Avenida Central, San José, Costa Rica"
-                />
-                {errors.address && (
-                  <div className="flex items-center mt-2 text-red-600">
-                    <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
-                    <span className="text-sm">{errors.address}</span>
-                  </div>
-                )}
-              </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -471,7 +424,7 @@ export default function StationsPage() {
                     step="0.000001"
                     value={newStation.latitude}
                     onChange={(e) =>
-                      setNewStation({ ...newStation, latitude: e.target.value })
+                      setNewStation({ ...newStation, latitude: parseFloat(e.target.value) }) // Parse to number
                     }
                     className={`w-full border-2 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-200 ${
                       errors.latitude
@@ -583,21 +536,41 @@ export default function StationsPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Dirección
-                </label>
-                <textarea
-                  value={editingStation.address}
-                  onChange={(e) =>
-                    setEditingStation({
-                      ...editingStation,
-                      address: e.target.value,
-                    })
-                  }
-                  className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 bg-white resize-none"
-                  rows={3}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Latitud
+                  </label>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    value={editingStation.latitude}
+                    onChange={(e) =>
+                      setEditingStation({
+                        ...editingStation,
+                        latitude: parseFloat(e.target.value),
+                      })
+                    }
+                    className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Longitud
+                  </label>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    value={editingStation.longitude}
+                    onChange={(e) =>
+                      setEditingStation({
+                        ...editingStation,
+                        longitude: parseFloat(e.target.value),
+                      })
+                    }
+                    className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 bg-white"
+                  />
+                </div>
               </div>
             </div>
 

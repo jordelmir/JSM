@@ -1,11 +1,5 @@
 package com.gasolinerajsm.coupon.service
 
-import com.gasolinerajsm.coupon.config.CouponProperties
-import com.gasolinerajsm.coupon.domain.CouponStatus
-import com.gasolinerajsm.coupon.domain.QRCoupon
-import com.gasolinerajsm.coupon.dto.GenerateQRRequest
-import com.gasolinerajsm.coupon.dto.ScanQRRequest
-import com.gasolinerajsm.coupon.dto.ActivateCouponRequest
 import com.gasolinerajsm.coupon.repository.QRCouponRepository
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.data.domain.Page
@@ -16,6 +10,10 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
+import com.fasterxml.jackson.databind.ObjectMapper // Import ObjectMapper
+import com.gasolinerajsm.coupon.outbox.Outbox // Import Outbox
+import com.gasolinerajsm.coupon.repository.OutboxRepository // Import OutboxRepository
+import com.gasolinerajsm.coupon.event.CouponActivatedEvent // Import CouponActivatedEvent
 
 @Service
 @Transactional
@@ -25,7 +23,9 @@ class QRCouponService(
     private val tokenGenerator: TokenGenerator,
     private val rabbitTemplate: RabbitTemplate,
     private val redisTemplate: RedisTemplate<String, Any>,
-    private val couponProperties: CouponProperties
+    private val couponProperties: CouponProperties,
+    private val outboxRepository: OutboxRepository, // Inject OutboxRepository
+    private val objectMapper: ObjectMapper // Inject ObjectMapper
 ) {
 
     fun generateQRCoupon(request: GenerateQRRequest): QRCoupon {
@@ -54,15 +54,18 @@ class QRCouponService(
             TimeUnit.HOURS
         )
 
-        // Publish event for asynchronous QR image generation
-        rabbitTemplate.convertAndSend(
-            "qr.exchange", // Define a new exchange for QR generation
-            "qr.generate", // Define a new routing key
-            mapOf(
-                "couponId" to savedCoupon.id.toString(),
-                "qrCode" to savedCoupon.qrCode
-            )
+        // Save event to outbox for asynchronous QR image generation
+        val qrGenerateEvent = mapOf(
+            "couponId" to savedCoupon.id.toString(),
+            "qrCode" to savedCoupon.qrCode
         )
+        val outboxQrGenerateEvent = Outbox(
+            aggregateType = "coupon",
+            aggregateId = savedCoupon.id.toString(),
+            eventType = "QrGenerateEvent",
+            payload = objectMapper.writeValueAsString(qrGenerateEvent)
+        )
+        outboxRepository.save(outboxQrGenerateEvent)
 
         return savedCoupon
     }
@@ -107,16 +110,20 @@ class QRCouponService(
 
         val savedCoupon = couponRepository.save(updatedCoupon)
 
-        // Publicar evento para iniciar secuencia de anuncios
-        rabbitTemplate.convertAndSend(
-            "coupon.exchange",
-            "coupon.activated",
-            mapOf(
-                "couponId" to savedCoupon.id,
-                "userId" to request.userId,
-                "baseTickets" to savedCoupon.baseTickets
-            )
+        // Save event to outbox for initiating ad sequence
+        val event = CouponActivatedEvent(
+            couponId = savedCoupon.id,
+            userId = request.userId,
+            baseTickets = savedCoupon.baseTickets,
+            stationId = savedCoupon.stationId // Include stationId from QRCoupon
         )
+        val outboxEvent = Outbox(
+            aggregateType = "coupon",
+            aggregateId = savedCoupon.id.toString(),
+            eventType = event.javaClass.simpleName, // Use simple name for eventType
+            payload = objectMapper.writeValueAsString(event)
+        )
+        outboxRepository.save(outboxEvent)
 
         return savedCoupon
     }

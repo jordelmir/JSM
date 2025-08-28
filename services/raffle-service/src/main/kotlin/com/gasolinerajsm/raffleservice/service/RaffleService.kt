@@ -103,7 +103,9 @@ class RaffleService(
                                             raffleId = savedRaffle.id!!,
                                             pointId = pointIdResponse.pointId,
                                             userId = pointIdResponse.userId // Save user ID with entry
-                                        ))}.subscribeOn(Schedulers.boundedElastic()).subscribe() // Save each entry asynchronously
+                                        ))}.subscribeOn(Schedulers.boundedElastic())
+                                            .doOnError { e -> logger.error("Failed to save raffle entry: {}", e.message, e) }
+                                            .subscribe() // Save each entry asynchronously
                                     }
                                     logger.info("Saved {} raffle entries for raffle ID: {}", pointIdsWithUsers.size, savedRaffle.id)
                                 }
@@ -151,7 +153,9 @@ class RaffleService(
                                                 raffle.externalSeed = externalSeed
                                                 raffle.winnerEntryId = winningEntry.pointId
                                                 Mono.fromCallable { raffleRepository.save(raffle) } // Blocking call wrapped
-                                                    .subscribeOn(Schedulers.boundedElastic()).subscribe() // Save raffle status asynchronously
+                                                    .subscribeOn(Schedulers.boundedElastic())
+                                                    .doOnError { e -> logger.error("Failed to save raffle status: {}", e.message, e) }
+                                                    .subscribe() // Save raffle status asynchronously
                                                 logger.info("Raffle ID {} drawn. Winner: \n", raffleId, savedWinner.winningPointId)
                                             }
                                     }
@@ -162,13 +166,30 @@ class RaffleService(
             .doOnError { e -> meterRegistry.counter("raffle.draw.failed.total").increment() }
     }
 
+    fun getAllRaffles(): List<Raffle> {
+        return raffleRepository.findAll()
+    }
+
+    fun getRaffleWinners(raffleId: Long): List<RaffleWinner> {
+        return raffleWinnerRepository.findByRaffleId(raffleId)
+    }
+
+    import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry // Conceptual import for Resilience4j
+
     private fun getBitcoinBlockhash(): Mono<String> {
         // Using a public API for Bitcoin block hash
         val webClient = webClientBuilder.baseUrl("https://blockchain.info").build()
-        return webClient.get()
-            .uri("/q/latesthash")
-            .retrieve()
-            .bodyToMono(String::class.java)
+
+        // Conceptual Circuit Breaker (requires Resilience4j dependency and configuration)
+        // val circuitBreaker = CircuitBreakerRegistry.ofDefaults().circuitBreaker("bitcoinBlockhash")
+
+        return Mono.defer { // Use Mono.defer to ensure the WebClient call is lazy and wrapped by CB
+            webClient.get()
+                .uri("/q/latesthash")
+                .retrieve()
+                .bodyToMono(String::class.java)
+        }
+            // .transformDeferred(CircuitBreakerOperator.of(circuitBreaker)) // Apply Circuit Breaker (conceptual)
             .retryWhen(Retry.backoff(3, Duration.ofSeconds(2)) // Retry 3 times with 2s backoff
                 .doBeforeRetry { retrySignal -> logger.warn("Retrying Bitcoin block hash fetch: {}", retrySignal) })
             .doOnError { e -> logger.error("Error fetching Bitcoin block hash: {}", e.message) }

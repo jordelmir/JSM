@@ -1,8 +1,8 @@
 package com.gasolinerajsm.raffleservice.application
 
 import com.gasolinerajsm.raffleservice.adapter.out.seed.SeedProvider
-import com.gasolinerajsm.raffleservice.domain.model.Raffle
-import com.gasolinerajsm.raffleservice.domain.repository.RaffleRepository
+import com.gasolinerajsm.raffleservice.model.Raffle
+import com.gasolinerajsm.raffleservice.repository.RaffleRepository
 import com.gasolinerajsm.raffleservice.domain.repository.PointsLedgerRepository // Assuming this exists from previous tasks
 import com.gasolinerajsm.raffleservice.util.HashingUtil
 import org.springframework.stereotype.Service

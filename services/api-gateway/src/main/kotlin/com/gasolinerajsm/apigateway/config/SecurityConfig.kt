@@ -47,7 +47,8 @@ class SecurityConfig {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOriginPatterns = listOf("*")
+        // TODO: Configure trusted origins for CORS. Avoid "*" in production for security.
+        configuration.allowedOriginPatterns = listOf("YOUR_TRUSTED_ORIGIN_HERE")
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
         configuration.allowedHeaders = listOf("*")
         configuration.allowCredentials = true

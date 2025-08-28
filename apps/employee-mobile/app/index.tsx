@@ -1,15 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert 
 } from "react-native";
+import { BarCodeScanner } from 'expo-barcode-scanner'; // Add this import
 
 import { createTicket, validateQRCode } from "libs/api/employee";
-import { useAuth } from "../hooks/useAuth"; // New import
+import { useAuth } from "../hooks/useAuth"; // Keep useAuth for now, but its usage will change
 
 export default function App() {
-  const [loadingAction, setLoadingAction] = useState<null | "login" | "ticket" | "qr">(null);
+  const [loadingAction, setLoadingAction] = useState<null | "ticket" | "qr">(null);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [scanned, setScanned] = useState(false);
 
-  const { login, loading: authLoading } = useAuth(); // Integrate useAuth hook
+  useEffect(() => {
+    (async () => {
+      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      setHasPermission(status === 'granted');
+    })();
+  }, []);
+
+  const { isAuthenticated, loading: authLoading } = useAuth(); // Get isAuthenticated and loading from useAuth
+
+  import { Redirect } from 'expo-router'; // Add this import
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated && !authLoading) {
+    return <Redirect href="/login" />;
+  }
 
   const handleGenerateTicket = async () => {
     try {
@@ -25,35 +42,39 @@ export default function App() {
     }
   };
 
-  const handleValidateQR = async (qrData: string) => {
+  const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
+    setScanned(true);
+    setLoadingAction("qr");
     try {
-      setLoadingAction("qr");
-      const validation = await validateQRCode(qrData);
+      const validation = await validateQRCode(data);
       console.log("QR validado:", validation);
-      Alert.alert("QR válido", JSON.stringify(validation));
+      Alert.alert("QR válido", JSON.stringify(validation), [{ text: "OK", onPress: () => setScanned(false) }]);
     } catch (error: any) {
       console.error("Error validando QR", error);
-      Alert.alert("Error", error?.message || "QR inválido");
+      Alert.alert("Error", error?.message || "QR inválido", [{ text: "OK", onPress: () => setScanned(false) }]);
     } finally {
       setLoadingAction(null);
     }
   };
 
+  if (hasPermission === null) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.message}>Solicitando permisos de cámara...</Text>
+      </View>
+    );
+  }
+  if (hasPermission === false) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.message}>No tenemos acceso a la cámara.</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Gasolinera JSM - Employee</Text>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => login("empleado1", "1234")} // Call login from hook, still using placeholder for now
-        disabled={authLoading} // Use loading state from hook
-      >
-        {authLoading ? ( // Use loading state from hook
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Iniciar Sesión</Text>
-        )}
-      </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={handleGenerateTicket} disabled={loadingAction==="ticket"}>
         {loadingAction === "ticket" ? (
@@ -65,15 +86,22 @@ export default function App() {
 
       <TouchableOpacity 
         style={[styles.button, { backgroundColor: "#007AFF" }]} 
-        onPress={() => handleValidateQR("FAKE-QR-123")} 
+        onPress={() => setScanned(false)} // Re-enable scanner
         disabled={loadingAction==="qr"}
       >
         {loadingAction === "qr" ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Validar QR</Text>
+          <Text style={styles.buttonText}>Escanear QR</Text>
         )}
       </TouchableOpacity>
+
+      {scanned && (
+        <BarCodeScanner
+          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+          style={StyleSheet.absoluteFillObject}
+        />
+      )}
     </View>
   );
 }
@@ -84,5 +112,6 @@ const styles = StyleSheet.create({
   button: { backgroundColor: "#4CAF50", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8, marginBottom: 12, minWidth: 180, alignItems: "center" },
   buttonText: { color: "#fff", fontSize: 16 },
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center", zIndex: 10 },
-  loadingText: { marginTop: 10, color: "#fff", fontSize: 18, fontWeight: "500" }
+  loadingText: { marginTop: 10, color: "#fff", fontSize: 18, fontWeight: "500" },
+  message: { fontSize: 16, color: "#8E8E93", textAlign: "center", marginBottom: 20 }
 });

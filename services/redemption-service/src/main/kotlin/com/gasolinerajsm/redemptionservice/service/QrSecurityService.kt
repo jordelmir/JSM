@@ -15,8 +15,8 @@ import java.util.Base64
 import org.slf4j.LoggerFactory
 
 data class QrPayload(
-    val s: String, // stationId
-    val d: String, // dispenserId
+    val s: Long, // stationId
+    val d: Long, // dispenserId
     val n: String, // nonce
     val t: Long,   // timestamp
     val exp: Long  // expiration

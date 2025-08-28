@@ -19,16 +19,16 @@ import java.util.concurrent.TimeUnit
  * This service handles both access tokens (short-lived) and refresh tokens (long-lived)
  * following OAuth 2.0 best practices.
  */
+import com.gasolinerajsm.authservice.config.JwtProperties // Import JwtProperties
+
 @Service
 class JwtService(
-    @Value("\${app.jwt.secret}")
-    private val jwtSecret: String,
+    private val jwtProperties: JwtProperties, // Inject JwtProperties
     private val redisTemplate: StringRedisTemplate
 ) {
 
     companion object {
-        private const val ACCESS_TOKEN_EXPIRATION_MS = 15 * 60 * 1000L // 15 minutes
-        private const val REFRESH_TOKEN_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000L // 7 days
+        // Removed hardcoded expiration constants
         private const val ROLES_CLAIM = "roles"
         private const val TOKEN_TYPE_CLAIM = "type"
         private const val ACCESS_TOKEN_TYPE = "access"
@@ -36,7 +36,7 @@ class JwtService(
         private const val BLACKLIST_PREFIX = "jwt_blacklist:"
     }
 
-    private val key: SecretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
+    private val key: SecretKey = Keys.hmacShaKeyFor(jwtProperties.secret.toByteArray()) // Use jwtProperties.secret
     private val logger = LoggerFactory.getLogger(JwtService::class.java)
 
     /**
@@ -50,7 +50,7 @@ class JwtService(
             .setSubject(subject)
             .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
             .setIssuedAt(Date())
-            .setExpiration(Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION_MS))
+            .setExpiration(Date(System.currentTimeMillis() + jwtProperties.accessTokenExpirationMs))
             .signWith(key, SignatureAlgorithm.HS256)
             .compact()
 
@@ -71,7 +71,7 @@ class JwtService(
             .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
             .claim(ROLES_CLAIM, roles)
             .setIssuedAt(Date())
-            .setExpiration(Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION_MS))
+            .setExpiration(Date(System.currentTimeMillis() + jwtProperties.accessTokenExpirationMs))
             .signWith(key, SignatureAlgorithm.HS256)
             .compact()
 
@@ -90,7 +90,7 @@ class JwtService(
             .setSubject(subject)
             .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
             .setIssuedAt(Date())
-            .setExpiration(Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION_MS))
+            .setExpiration(Date(System.currentTimeMillis() + jwtProperties.refreshTokenExpirationMs))
             .signWith(key, SignatureAlgorithm.HS256)
             .compact()
 

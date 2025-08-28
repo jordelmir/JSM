@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Add useEffect
 import {
   UsersIcon,
   PlusIcon,
@@ -10,164 +10,124 @@ import {
   ChartBarIcon,
   TicketIcon,
 } from '@heroicons/react/24/outline';
-
-interface Employee {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  employeeCode: string;
-  stationId: string;
-  stationName: string;
-  isActive: boolean;
-  todayTickets: number;
-  weeklyTickets: number;
-  conversionRate: number;
-  joinDate: string;
-}
-
-const mockEmployees: Employee[] = [
-  {
-    id: '1',
-    name: 'María González',
-    email: 'maria@gasolinera-jsm.com',
-    phone: '+506 8888-1111',
-    employeeCode: 'EMP-001',
-    stationId: '1',
-    stationName: 'Gasolinera JSM Centro',
-    isActive: true,
-    todayTickets: 45,
-    weeklyTickets: 280,
-    conversionRate: 82.3,
-    joinDate: '2024-01-15',
-  },
-  {
-    id: '2',
-    name: 'Carlos Rodríguez',
-    email: 'carlos@gasolinera-jsm.com',
-    phone: '+506 8888-2222',
-    employeeCode: 'EMP-002',
-    stationId: '2',
-    stationName: 'Gasolinera JSM Norte',
-    isActive: true,
-    todayTickets: 38,
-    weeklyTickets: 245,
-    conversionRate: 78.5,
-    joinDate: '2024-02-01',
-  },
-  {
-    id: '3',
-    name: 'Ana Jiménez',
-    email: 'ana@gasolinera-jsm.com',
-    phone: '+506 8888-3333',
-    employeeCode: 'EMP-003',
-    stationId: '3',
-    stationName: 'Gasolinera JSM Sur',
-    isActive: true,
-    todayTickets: 42,
-    weeklyTickets: 290,
-    conversionRate: 88.1,
-    joinDate: '2024-01-20',
-  },
-  {
-    id: '4',
-    name: 'Pedro Morales',
-    email: 'pedro@gasolinera-jsm.com',
-    phone: '+506 8888-4444',
-    employeeCode: 'EMP-004',
-    stationId: '1',
-    stationName: 'Gasolinera JSM Centro',
-    isActive: false,
-    todayTickets: 0,
-    weeklyTickets: 0,
-    conversionRate: 0,
-    joinDate: '2024-03-01',
-  },
-];
-
-const stations = [
-  { id: '1', name: 'Gasolinera JSM Centro' },
-  { id: '2', name: 'Gasolinera JSM Norte' },
-  { id: '3', name: 'Gasolinera JSM Sur' },
-];
+import { toast } from 'react-toastify'; // Import toast
+import {
+  getEmployees,
+  createEmployee,
+  updateEmployee,
+  deleteEmployee,
+  Employee, // Import Employee interface
+  CreateEmployeeDto, // Import CreateEmployeeDto
+  UpdateEmployeeDto, // Import UpdateEmployeeDto
+} from '@/lib/employeeApiClient'; // Import employee API client
+import { getStationOptions, StationOption } from '@/lib/stationApiClient'; // Import station API client
 
 export default function EmployeesPage() {
-  const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
+  const [employees, setEmployees] = useState<Employee[]>([]); // Initialize with empty array
+  const [stationOptions, setStationOptions] = useState<StationOption[]>([]); // For station dropdown
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [selectedStation, setSelectedStation] = useState<string>('all');
-  const [newEmployee, setNewEmployee] = useState({
+  const [newEmployee, setNewEmployee] = useState<CreateEmployeeDto>({ // Use CreateEmployeeDto
     name: '',
     email: '',
     phone: '',
     stationId: '',
   });
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [error, setError] = useState<string | null>(null); // Add error state
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const [employeesData, stationsData] = await Promise.all([
+          getEmployees(),
+          getStationOptions(),
+        ]);
+        setEmployees(employeesData);
+        setStationOptions(stationsData);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch data.');
+        toast.error(err.message || 'Failed to fetch data.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []); // Fetch on mount
 
   const filteredEmployees =
     selectedStation === 'all'
       ? employees
       : employees.filter((emp) => emp.stationId === selectedStation);
 
-  const handleAddEmployee = () => {
-    const selectedStationData = stations.find(
-      (s) => s.id === newEmployee.stationId
-    );
-
-    const employee: Employee = {
-      id: Date.now().toString(),
-      name: newEmployee.name,
-      email: newEmployee.email,
-      phone: newEmployee.phone,
-      employeeCode: `EMP-${String(employees.length + 1).padStart(3, '0')}`,
-      stationId: newEmployee.stationId,
-      stationName: selectedStationData?.name || '',
-      isActive: true,
-      todayTickets: 0,
-      weeklyTickets: 0,
-      conversionRate: 0,
-      joinDate: new Date().toISOString().split('T')[0],
-    };
-
-    setEmployees([...employees, employee]);
-    setNewEmployee({ name: '', email: '', phone: '', stationId: '' });
-    setShowAddModal(false);
+  const handleAddEmployee = async () => {
+    try {
+      const created = await createEmployee(newEmployee);
+      setEmployees((prev) => [...prev, created]);
+      setNewEmployee({ name: '', email: '', phone: '', stationId: '' }); // Reset form
+      setShowAddModal(false);
+      toast.success('¡Empleado creado exitosamente!');
+    } catch (err: any) {
+      console.error('Error creating employee:', err);
+      toast.error(err.message || 'Error al crear empleado.');
+    }
   };
 
   const handleEditEmployee = (employee: Employee) => {
     setEditingEmployee(employee);
   };
 
-  const handleUpdateEmployee = () => {
+  const handleUpdateEmployee = async () => {
     if (!editingEmployee) return;
 
-    const selectedStationData = stations.find(
-      (s) => s.id === editingEmployee.stationId
-    );
-    const updatedEmployee = {
-      ...editingEmployee,
-      stationName: selectedStationData?.name || editingEmployee.stationName,
-    };
-
-    setEmployees(
-      employees.map((emp) =>
-        emp.id === editingEmployee.id ? updatedEmployee : emp
-      )
-    );
-    setEditingEmployee(null);
-  };
-
-  const handleDeleteEmployee = (id: string) => {
-    if (confirm('¿Estás seguro de eliminar este empleado?')) {
-      setEmployees(employees.filter((emp) => emp.id !== id));
+    try {
+      const updated = await updateEmployee(editingEmployee.id, {
+        name: editingEmployee.name,
+        email: editingEmployee.email,
+        phone: editingEmployee.phone,
+        stationId: editingEmployee.stationId,
+        isActive: editingEmployee.isActive,
+      });
+      setEmployees((prev) =>
+        prev.map((emp) => (emp.id === updated.id ? updated : emp))
+      );
+      setEditingEmployee(null);
+      toast.success('¡Empleado actualizado exitosamente!');
+    } catch (err: any) {
+      console.error('Error updating employee:', err);
+      toast.error(err.message || 'Error al actualizar empleado.');
     }
   };
 
-  const toggleEmployeeStatus = (id: string) => {
-    setEmployees(
-      employees.map((emp) =>
-        emp.id === id ? { ...emp, isActive: !emp.isActive } : emp
-      )
-    );
+  const handleDeleteEmployee = async (id: string) => {
+    // TODO: Replace with a proper confirmation modal component
+    toast.info(`Eliminando empleado con ID: ${id}...`, { autoClose: 5000 });
+    try {
+      await deleteEmployee(id);
+      setEmployees((prev) => prev.filter((emp) => emp.id !== id));
+      toast.success('¡Empleado eliminado exitosamente!');
+    } catch (err: any) {
+      console.error('Error deleting employee:', err);
+      toast.error(err.message || 'Error al eliminar empleado.');
+    }
+  };
+
+  const toggleEmployeeStatus = async (id: string) => {
+    try {
+      const employeeToUpdate = employees.find((emp) => emp.id === id);
+      if (!employeeToUpdate) return;
+
+      const updated = await updateEmployee(id, { isActive: !employeeToUpdate.isActive });
+      setEmployees((prev) =>
+        prev.map((emp) => (emp.id === updated.id ? updated : emp))
+      );
+      toast.success('Estado del empleado actualizado.');
+    } catch (err: any) {
+      console.error('Error toggling employee status:', err);
+      toast.error(err.message || 'Error al actualizar el estado del empleado.');
+    }
   };
 
   const activeEmployees = employees.filter((emp) => emp.isActive);
@@ -278,7 +238,7 @@ export default function EmployeesPage() {
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
             >
               <option value="all">Todas las estaciones</option>
-              {stations.map((station) => (
+              {stationOptions.map((station) => (
                 <option key={station.id} value={station.id}>
                   {station.name}
                 </option>
@@ -474,7 +434,7 @@ export default function EmployeesPage() {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 >
                   <option value="">Seleccionar estación</option>
-                  {stations.map((station) => (
+                  {stationOptions.map((station) => (
                     <option key={station.id} value={station.id}>
                       {station.name}
                     </option>
@@ -578,7 +538,7 @@ export default function EmployeesPage() {
                   }
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 >
-                  {stations.map((station) => (
+                  {stationOptions.map((station) => (
                     <option key={station.id} value={station.id}>
                       {station.name}
                     </option>

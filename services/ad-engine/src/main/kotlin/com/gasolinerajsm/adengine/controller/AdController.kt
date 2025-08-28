@@ -8,6 +8,7 @@ import com.gasolinerajsm.adengine.repository.AdImpressionRepository
 import com.gasolinerajsm.adengine.service.AdSelectionService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
+import com.gasolinerajsm.common.api.ApiResponse // Import ApiResponse
 import org.springframework.web.bind.annotation.*
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
@@ -29,9 +30,9 @@ class AdController(
     }
 
     @PostMapping("/select")
-    fun selectAd(@Valid @RequestBody request: AdSelectionRequest): ResponseEntity<AdCreativeResponse> {
+    fun selectAd(@Valid @RequestBody request: AdSelectionRequest): ResponseEntity<ApiResponse<AdCreativeResponse>> {
         val adCreative = adSelectionService.selectAd(request)
-        return ResponseEntity.ok(adCreative)
+        return ResponseEntity.ok(ApiResponse(data = adCreative)) // Wrap in ApiResponse
     }
 
     @PostMapping("/impression")

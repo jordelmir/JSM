@@ -4,8 +4,10 @@ test.describe('Gestión de Estaciones', () => {
   test.beforeEach(async ({ page }) => {
     // Asumiendo que ya existe un usuario admin para pruebas
     await page.goto('/login');
-    await page.getByLabel('Correo Electrónico').fill('admin@puntog.com'); // Usar credenciales de prueba
-    await page.getByLabel('Contraseña').fill('admin123'); // Usar credenciales de prueba
+    // Use environment variables for admin test credentials
+    // Example: process.env.ADMIN_USER_EMAIL, process.env.ADMIN_USER_PASSWORD
+    await page.getByLabel('Correo Electrónico').fill(process.env.ADMIN_USER_EMAIL || 'admin@puntog.com');
+    await page.getByLabel('Contraseña').fill(process.env.ADMIN_USER_PASSWORD || 'admin123');
     await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
     await expect(page).toHaveURL('/dashboard');
   });

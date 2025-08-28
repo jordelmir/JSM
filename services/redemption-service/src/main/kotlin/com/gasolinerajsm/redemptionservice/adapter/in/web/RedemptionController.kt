@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.Authentication
 
 @RestController
 @RequestMapping("/redeem")
@@ -24,15 +26,15 @@ class RedemptionController(
     @PostMapping
     fun redeem(@Valid @RequestBody command: RedeemCommand): RedemptionResult {
         val qrPayload = qrSecurityService.validateAndParseToken(command.qrToken)
-        // In a real app, get userId from JWT token (SecurityContextHolder)
-        val userId = "user-placeholder-id" 
+        val authentication: Authentication = SecurityContextHolder.getContext().authentication
+        val userId = authentication.name // Assuming the principal name is the userId
         return redemptionService.initiateRedemption(userId, command)
     }
 
     @PostMapping("/confirm-ad")
     fun confirmAd(@Valid @RequestBody request: ConfirmAdRequest): ConfirmAdResponse {
-        // In a real app, get userId from JWT token
-        val userId = "user-placeholder-id"
+        val authentication: Authentication = SecurityContextHolder.getContext().authentication
+        val userId = authentication.name // Assuming the principal name is the userId
         return redemptionService.confirmAdWatched(userId, request)
     }
 

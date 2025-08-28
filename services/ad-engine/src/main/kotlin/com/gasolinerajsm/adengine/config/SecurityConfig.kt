@@ -13,7 +13,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
-class SecurityConfig(private val jwtAuthFilter: JwtAuthenticationFilter) {
+import com.fasterxml.jackson.databind.ObjectMapper // Import ObjectMapper
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
+class SecurityConfig(
+    private val jwtAuthFilter: JwtAuthenticationFilter,
+    private val openApiValidationFilter: OpenApiValidationFilter, // Inject OpenApiValidationFilter
+    private val objectMapper: ObjectMapper // Inject ObjectMapper for the filter
+) {
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -24,6 +33,7 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthenticationFilter) {
                 it.requestMatchers("/actuator/**", "/ad/select").permitAll() // Permit selection endpoint for now
                 .anyRequest().authenticated()
             }
+            .addFilterBefore(openApiValidationFilter, UsernamePasswordAuthenticationFilter::class.java) // Add validation filter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()

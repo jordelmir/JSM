@@ -8,7 +8,7 @@ import java.time.Instant
 data class AdCampaign(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
-    val advertiserId: Long,
+    val advertiserId: String,
     val name: String,
     val adUrl: String,
     val stationId: Long?,

@@ -1,7 +1,7 @@
 package com.gasolinerajsm.raffleservice.application
 
-import com.gasolinerajsm.raffleservice.domain.model.Raffle
-import com.gasolinerajsm.raffleservice.domain.repository.RaffleRepository
+import com.gasolinerajsm.raffleservice.model.Raffle
+import com.gasolinerajsm.raffleservice.repository.RaffleRepository
 import com.gasolinerajsm.raffleservice.domain.service.MerkleTree
 import org.springframework.stereotype.Service
 

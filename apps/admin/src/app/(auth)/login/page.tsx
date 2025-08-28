@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthStore } from '@/store/authStore';
-import apiClient from '@/lib/api/client';
+import * as apiClient from '@/lib/apiClient';
+import { toast } from 'react-toastify';
 
 
 export default function AuthenticationPage() {
@@ -45,7 +46,7 @@ export default function AuthenticationPage() {
 
     } catch (error) {
       console.error("Error en el inicio de sesión:", error);
-      alert('Credenciales incorrectas o error en el servidor.');
+      toast.error('Credenciales incorrectas o error en el servidor.');
     } finally {
       setIsLoading(false);
     }
@@ -61,12 +62,12 @@ export default function AuthenticationPage() {
             password: registerPassword
         });
 
-        alert('¡Registro exitoso! Por favor, inicia sesión.');
+        toast.success('¡Registro exitoso! Por favor, inicia sesión.');
         // Opcional: Iniciar sesión automáticamente después del registro
         
     } catch (error) {
         console.error("Error en el registro:", error);
-        alert('No se pudo completar el registro. Inténtalo de nuevo.');
+        toast.error('No se pudo completar el registro. Inténtalo de nuevo.');
     } finally {
         setIsLoading(false);
     }

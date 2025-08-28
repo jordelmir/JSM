@@ -6,8 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getRaffles, closeRafflePeriod, executeRaffleDraw, Raffle } from "@/lib/apiClient";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 export default function RafflesPage() {
   const [raffles, setRaffles] = useState<Raffle[]>([]);
@@ -33,35 +32,37 @@ export default function RafflesPage() {
   }, []);
 
   const handleClosePeriod = async (period: string) => {
-    if (confirm(`¿Estás seguro de que quieres cerrar el período ${period} y construir el Merkle Tree?`)) {
-      try {
-        setIsLoading(true);
-        await closeRafflePeriod(period);
-        toast.success(`Period ${period} closed successfully!`);
-        fetchRaffles(); // Re-fetch after closing
-      } catch (err: any) {
-        setError(err.message);
-        toast.error(`Error closing period: ${err.message}`);
-      } finally {
-        setIsLoading(false);
-      }
+    // TODO: Replace with a proper confirmation modal component
+    toast.info(`Cerrando período ${period} y construyendo Merkle Tree...`, { autoClose: 5000 });
+    console.log(`Action: Closing period ${period} and building Merkle Tree.`);
+    try {
+      setIsLoading(true);
+      await closeRafflePeriod(period);
+      toast.success(`Period ${period} closed successfully!`);
+      fetchRaffles(); // Re-fetch after closing
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(`Error closing period: ${err.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleExecuteDraw = async (raffleId: number) => {
-    if (confirm(`¿Estás seguro de que quieres ejecutar el sorteo para el ID ${raffleId}? Esto es irreversible.`)) {
-      try {
-        setIsLoading(true);
-        await executeRaffleDraw(raffleId);
-        toast.success(`Raffle ${raffleId} drawn successfully!`);
-        fetchRaffles(); // Re-fetch after draw
-      } catch (err: any) {
-        setError(err.message);
-        toast.error(`Error executing draw: ${err.message}`);
+    // TODO: Replace with a proper confirmation modal component
+    toast.info(`Ejecutando sorteo para el ID ${raffleId}...`, { autoClose: 5000 });
+    console.log(`Action: Executing draw for ID ${raffleId}.`);
+    try {
+      setIsLoading(true);
+      await executeRaffleDraw(raffleId);
+      toast.success(`Raffle ${raffleId} drawn successfully!`);
+      fetchRaffles(); // Re-fetch after draw
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(`Error executing draw: ${err.message}`);
       } finally {
         setIsLoading(false);
       }
-    }
   };
 
   // Helper to get current period (e.g., YYYY-MM)
@@ -133,7 +134,6 @@ export default function RafflesPage() {
           )}
         </CardContent>
       </Card>
-      <ToastContainer position="bottom-right" />
-    </div>
+      </div>
   );
 }

@@ -12,6 +12,8 @@ import kotlin.random.Random // Import Random
 
 import io.micrometer.core.instrument.MeterRegistry // Import Micrometer
 
+import org.springframework.cache.annotation.Cacheable // Import Cacheable
+
 @Service
 class AdSelectionService(
     private val campaignRepository: CampaignRepository,
@@ -22,6 +24,7 @@ class AdSelectionService(
 
     private val logger = LoggerFactory.getLogger(AdSelectionService::class.java)
 
+    @Cacheable(value = ["activeCampaigns"], key = "#request.stationId")
     fun selectAd(request: AdSelectionRequest): AdCreativeResponse {
         val activeCampaigns = campaignRepository.findActiveCampaignsForStation(
             request.stationId

@@ -10,6 +10,7 @@ import {
   UserIcon,
   KeyIcon,
 } from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify'; // Import toast
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
@@ -53,7 +54,7 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     // Aquí se guardarían los settings en la API
-    alert('Configuración guardada exitosamente');
+    toast.success('Configuración guardada exitosamente');
   };
 
   return (

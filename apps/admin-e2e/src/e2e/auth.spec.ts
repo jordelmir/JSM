@@ -14,8 +14,10 @@ test.describe('Flujo de Autenticación', () => {
 
     // 3. Rellenar el formulario
     // (Usaremos credenciales de un usuario que debe existir gracias al script de seeding)
-    await page.getByLabel('Correo Electrónico').fill('testuser@example.com');
-    await page.getByLabel('Contraseña').fill('password123');
+    // Use environment variables for test credentials
+    // Example: process.env.TEST_USER_EMAIL, process.env.TEST_USER_PASSWORD
+    await page.getByLabel('Correo Electrónico').fill(process.env.TEST_USER_EMAIL || 'testuser@example.com');
+    await page.getByLabel('Contraseña').fill(process.env.TEST_USER_PASSWORD || 'password123');
 
     // 4. Hacer clic en el botón de Iniciar Sesión
     await page.getByRole('button', { name: 'Iniciar Sesión' }).click();

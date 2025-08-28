@@ -27,10 +27,6 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "anunciante@tosty.com",
-      password: "tosty123",
-    },
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {

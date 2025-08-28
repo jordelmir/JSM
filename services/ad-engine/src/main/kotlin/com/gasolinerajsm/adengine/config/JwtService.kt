@@ -7,11 +7,12 @@ import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import javax.crypto.SecretKey
+import java.util.Date
 
 @Service
 class JwtService {
 
-    @Value("\${app.jwt.secret:defaultSecretKeyForDevelopment}")
+    @Value("\${app.jwt.secret}")
     private lateinit var secret: String
 
     private val secretKey: SecretKey by lazy {
@@ -35,9 +36,14 @@ class JwtService {
     }
 
     fun isTokenValid(token: String): Boolean {
-        // Basic validation, a real implementation would check expiration, etc.
         return try {
-            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token)
+            val claims = extractAllClaims(token)
+            // Check if the token is expired
+            val expirationDate = claims.expiration
+            if (expirationDate != null && expirationDate.before(java.util.Date())) {
+                return false
+            }
+            // Add other validations like 'not before' if necessary
             true
         } catch (e: Exception) {
             false

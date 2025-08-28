@@ -22,5 +22,15 @@ class RaffleController(private val raffleService: RaffleService) {
         return raffleService.executeRaffleDraw(id)
     }
 
+    @GetMapping
+    fun getAllRaffles(): List<Raffle> {
+        return raffleService.getAllRaffles()
+    }
+
+    @GetMapping("/{raffleId}/winners")
+    fun getRaffleWinners(@PathVariable raffleId: Long): List<RaffleWinner> {
+        return raffleService.getRaffleWinners(raffleId)
+    }
+
     // TODO: Add GET endpoints for listing raffles and winners
 }

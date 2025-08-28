@@ -44,7 +44,7 @@ class LoggingFilter(private val tracer: Tracer) : GlobalFilter, Ordered {
             correlationId,
             mutatedRequest.method,
             mutatedRequest.uri,
-            mutatedRequest.headers.toSingleValueMap(),
+            redactHeaders(mutatedRequest.headers.toSingleValueMap()),
             LocalDateTime.now()
         )
 
@@ -78,6 +78,17 @@ class LoggingFilter(private val tracer: Tracer) : GlobalFilter, Ordered {
                     error
                 )
             }
+    }
+
+    private fun redactHeaders(headers: Map<String, String>): Map<String, String> {
+        val redactedHeaders = headers.toMutableMap()
+        val sensitiveHeaders = listOf("authorization", "cookie", "x-auth-token") // Add other sensitive headers as needed
+        sensitiveHeaders.forEach { headerName ->
+            if (redactedHeaders.containsKey(headerName)) {
+                redactedHeaders[headerName] = "[REDACTED]"
+            }
+        }
+        return redactedHeaders
     }
 
     override fun getOrder(): Int {

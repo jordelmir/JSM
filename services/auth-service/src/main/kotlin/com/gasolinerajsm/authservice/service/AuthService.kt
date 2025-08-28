@@ -55,7 +55,6 @@ class AuthService(
 
         // TODO: Replace with actual SMS service integration
         // otpSender.send(phone, "Your Gasolinera JSM code is: $otp")
-        logger.debug("Mock OTP for $phone: $otp") // Remove in production
     }
 
     /**

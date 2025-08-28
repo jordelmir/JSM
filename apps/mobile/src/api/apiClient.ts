@@ -1,6 +1,6 @@
 import { useUserStore } from '../store/userStore'; // Import the Zustand store
 
-const API_BASE_URL = 'http://192.168.1.100:8080/api/v1'; // Reemplazar con la IP del API Gateway
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8080/api/v1'; // Fallback for development
 
 /**
  * Realiza una petición fetch y maneja errores de forma centralizada.
