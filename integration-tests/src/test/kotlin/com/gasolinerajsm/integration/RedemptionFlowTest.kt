@@ -89,7 +89,7 @@ class RedemptionFlowTest {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $token")
             .body("""{"redemptionId": "$redemptionId"}""")
-            .post("/api/v1/redemptions/confirm")
+            .post("/redemptions/confirm")
         .then()
             .statusCode(200)
 

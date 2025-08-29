@@ -24,7 +24,7 @@ export const useAuthStore = create<AuthState>()(
         const token = useAuthStore.getState().accessToken;
         if (token) {
           try {
-            await axios.post('/api/auth/logout', null, {
+            await axios.post('/auth/logout', null, {
               headers: {
                 Authorization: `Bearer ${token}`,
               },

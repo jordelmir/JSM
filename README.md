@@ -30,9 +30,29 @@ Digitalizar completamente el sistema de cupones de gasolineras, reemplazando los
 - **Analytics Detallados**: Rendimiento por empleado y sucursal
 - **Control de Sorteos**: Gestión de premios y ganadores
 
-## Arquitectura y Stack Tecnológico
+## 🏗️ Arquitectura y Stack Tecnológico
 
-El sistema está construido sobre una arquitectura de microservicios utilizando un monorepo `nx`.
+El sistema está construido sobre una arquitectura de microservicios orquestada a través de un **monorepo de Nx**.
+Esta estructura centraliza la gestión de dependencias y facilita la coherencia en todo el ecosistema de aplicaciones y servicios.
+
+### Visualización del Grafo de Dependencias
+
+Para obtener una visión interactiva de cómo se relacionan las aplicaciones (`apps`), las librerías (`packages`) y los servicios, puedes generar un grafo de dependencias ejecutando el siguiente comando en la raíz del proyecto:
+
+```bash
+nx graph
+```
+
+Esto abrirá una visualización en tu navegador que te permitirá explorar las conexiones entre todos los componentes del sistema.
+
+### Componentes Principales
+
+- **`/apps`**: Contiene las aplicaciones frontend de cara al usuario (dashboards de Next.js y aplicaciones móviles de React Native).
+- **`/services`**: Alberga los microservicios de backend (Kotlin + Spring Boot) que componen la lógica de negocio.
+- **`/packages`**: Incluye librerías compartidas (como el `internal-sdk` y stores de estado) para reutilizar código entre proyectos.
+- **`/infra`**: Define la infraestructura como código del proyecto (Docker, Kubernetes, Terraform).
+
+### Stack Tecnológico
 
 - **Backend:** Kotlin + Spring Boot 3 + Java 17
 - **Frontend (Web):** Next.js + TypeScript + Tailwind CSS

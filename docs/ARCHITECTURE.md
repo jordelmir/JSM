@@ -2,7 +2,14 @@
 
 ## Visión General
 
-Gasolinera JSM es una plataforma de microservicios diseñada para digitalizar y monetizar la experiencia de recarga de combustible. El sistema utiliza una arquitectura distribuida con patrones modernos de desarrollo.
+Gasolinera JSM es una plataforma de microservicios diseñada para digitalizar y monetizar la experiencia de recarga de combustible. El sistema utiliza una arquitectura distribuida con patrones modernos de desarrollo, orquestada dentro de un monorepo de Nx para máxima consistencia y mantenibilidad.
+
+## Principios Arquitectónicos Clave
+
+- **API First**: Todos los servicios exponen su funcionalidad a través de un contrato OpenAPI bien definido. Las rutas de API están estandarizadas y no contienen prefijos de versión.
+- **Seguridad Explícita**: La seguridad (JWT) es parte del contrato OpenAPI, no una preocupación implícita de la implementación.
+- **Infraestructura como Código**: Todo el entorno (Docker, Kubernetes) está definido declarativamente.
+- **Observabilidad Profunda**: El tracing distribuido, el logging estructurado y las métricas son ciudadanos de primera clase.
 
 ## Componentes Principales
 

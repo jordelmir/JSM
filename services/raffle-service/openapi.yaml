@@ -9,7 +9,7 @@ servers:
 paths:
   /raffles/{period}/close:
     post:
-      summary: Close a raffle period
+      summary: Asynchronously close a raffle period
       operationId: closeRafflePeriod
       parameters:
         - name: period
@@ -17,19 +17,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^\\d{4}-\\d{2}-\\d{2}$'
-          description: Raffle period in YYYY-MM-DD format
-      responses:
-        '200':
-          description: Raffle period closed successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Raffle'
-        '400':
-          description: Invalid period format or no points found
-        '409':
-          description: Raffle already closed or drawn
+            pattern: '^\\d{4}-\\d{2}-\\d{2}
   /raffles/{id}/draw:
     post:
       summary: Execute a raffle draw
@@ -54,6 +42,124 @@ paths:
         '404':
           description: Raffle not found
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Raffle:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        period:
+          type: string
+        merkleRoot:
+          type: string
+        status:
+          type: string
+          enum:
+            - OPEN
+            - CLOSED
+            - DRAWN
+        drawAt:
+          type: string
+          format: date-time
+        externalSeed:
+          type: string
+        winnerEntryId:
+          type: string
+    RaffleWinner:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        raffleId:
+          type: integer
+          format: int64
+        userId:
+          type: string
+        winningPointId:
+          type: string
+        prize:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+          description: Raffle period in YYYY-MM-DD format
+      responses:
+        '202':
+          description: Raffle closing process initiated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                  statusUrl:
+                    type: string
+        '400':
+          description: Invalid period format or no points found
+        '409':
+          description: Raffle already closed or drawn
+      security:
+        - bearerAuth: []
+  /raffles/{id}:
+    get:
+      summary: Get raffle status and details
+      operationId: getRaffleById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Raffle details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Raffle'
+        '404':
+          description: Raffle not found
+  /raffles/{id}/draw:
+    post:
+      summary: Execute a raffle draw
+      operationId: executeRaffleDraw
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the raffle to draw
+      responses:
+        '200':
+          description: Raffle drawn successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RaffleWinner'
+        '400':
+          description: Invalid raffle ID or not in CLOSED status
+        '404':
+          description: Raffle not found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     Raffle:
       type: object

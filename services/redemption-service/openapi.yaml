@@ -45,7 +45,14 @@ paths:
                 $ref: '#/components/schemas/ConfirmAdResponse'
         '400':
           description: Invalid session ID or request
+      security:
+        - bearerAuth: []
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     RedeemCommand:
       type: object
@@ -57,6 +64,7 @@ components:
           type: string
         userId:
           type: string
+          format: uuid
     RedemptionResult:
       type: object
       properties:

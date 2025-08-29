@@ -7,10 +7,12 @@ servers:
   - url: http://localhost:8083
     description: Local Development Server
 paths:
-  /api/v1/stations:
+  /stations:
     get:
       summary: Get all stations
       operationId: getAllStations
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: List of stations
@@ -29,6 +31,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateStationDto'
+      security:
+        - bearerAuth: []
       responses:
         '201':
           description: Station created successfully
@@ -36,7 +40,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StationDto'
-  /api/v1/stations/{id}:
+  /stations/{id}:
     get:
       summary: Get station by ID
       operationId: getStationById
@@ -46,6 +50,8 @@ paths:
           required: true
           schema:
             type: string
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Station details
@@ -70,6 +76,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateStationDto'
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Station updated successfully
@@ -88,12 +96,19 @@ paths:
           required: true
           schema:
             type: string
+      security:
+        - bearerAuth: []
       responses:
         '204':
           description: Station deleted successfully
         '404':
           description: Station not found
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     StationDto:
       type: object

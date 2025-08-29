@@ -30,7 +30,7 @@ class SecurityConfig {
 
                     // Protected endpoints
                     .pathMatchers("/coupons/**").authenticated()
-                    .pathMatchers("/api/v1/stations/**").authenticated()
+                    .pathMatchers("/stations/**").authenticated()
                     .pathMatchers("/ads/**").authenticated()
                     .pathMatchers("/campaigns/**").hasRole("ADMIN")
                     .pathMatchers("/raffles/**").authenticated()

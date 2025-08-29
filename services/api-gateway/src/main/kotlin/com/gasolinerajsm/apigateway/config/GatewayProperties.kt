@@ -16,7 +16,7 @@ data class GatewayProperties(
 
     val authServicePath: String = "/auth/**",
     val couponServicePath: String = "/coupons/**",
-    val stationServicePath: String = "/api/v1/stations/**",
+    val stationServicePath: String = "/stations/**",
     val adEngineServicePaths: List<String> = listOf("/ads/**", "/campaigns/**"),
     val raffleServicePath: String = "/raffles/**",
     val healthCheckPath: String = "/actuator/health",

@@ -7,7 +7,7 @@ servers:
   - url: http://localhost:8084
     description: Local Development Server
 paths:
-  /ad/select:
+  /campaigns:
     post:
       summary: Select an ad creative
       operationId: selectAd
@@ -39,7 +39,14 @@ paths:
       responses:
         '202':
           description: Impression recorded asynchronously
+      security:
+        - bearerAuth: []
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     AdSelectionRequest:
       type: object
@@ -49,8 +56,8 @@ components:
         - sessionId
       properties:
         userId:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         stationId:
           type: integer
           format: int64
@@ -79,8 +86,8 @@ components:
         - skipped
       properties:
         userId:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
         campaignId:
           type: integer
           format: int64

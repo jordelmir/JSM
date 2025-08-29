@@ -18,7 +18,7 @@ import com.gasolinerajsm.stationservice.dto.UpdateStationDto
 
 
 @RestController
-@RequestMapping("/api/v1/stations") // Standardized API path
+@RequestMapping("/stations") // Standardized API path
 class StationController(private val stationService: StationService) {
 
     @GetMapping

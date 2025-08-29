@@ -26,7 +26,7 @@ src/main/kotlin/com/gasolinerajsm/apigateway/
 
 - **Auth Service**: `/auth/**` → `http://auth-service:8081`
 - **Coupon Service**: `/coupons/**` → `http://coupon-service:8084`
-- **Station Service**: `/api/v1/stations/**` → `http://station-service:8083`
+- **Station Service**: `/stations/**` → `http://station-service:8083`
 - **Ad Engine**: `/ads/**`, `/campaigns/**` → `http://ad-engine:8082`
 - **Raffle Service**: `/raffles/**` → `http://raffle-service:8085`
 
@@ -165,7 +165,7 @@ curl http://localhost:8080/fallback/raffles
 ### Endpoints Protegidos
 
 - `/coupons/**` - Requiere autenticación
-- `/api/v1/stations/**` - Requiere autenticación
+- `/stations/**` - Requiere autenticación
 - `/ads/**` - Requiere autenticación
 - `/campaigns/**` - Requiere rol ADMIN
 - `/raffles/**` - Requiere autenticación
@@ -371,7 +371,7 @@ done
 
 ### Station Service
 
-- **Endpoint**: `/api/v1/stations/**`
+- **Endpoint**: `/stations/**`
 - **Autenticación**: JWT requerido
 - **Circuit Breaker**: No (estable)
 

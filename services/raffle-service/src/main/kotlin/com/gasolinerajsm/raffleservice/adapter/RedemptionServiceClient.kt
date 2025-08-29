@@ -20,7 +20,7 @@ class RedemptionServiceClient(
     fun getPointIdsByPeriod(period: String): Mono<List<PointIdResponse>> {
         logger.info("Fetching point IDs for period {} from Redemption Service", period)
         return webClient.get()
-            .uri("/api/v1/points/by-period?period={period}", period) // Example API path
+            .uri("/points/by-period?period={period}", period) // Example API path
             .retrieve()
             .bodyToMono(PointIdsByPeriodResponse::class.java)
             .map { it.pointIds }
