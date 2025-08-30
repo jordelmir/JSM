@@ -1,23 +1,20 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import ConfettiCannon from 'react-native-confetti-cannon';
-import * as Haptics from 'expo-haptics'; // <-- 1. IMPORTACIÓN AÑADIDA
-
-// --- Simulación de una llamada a API ---
-const fakeActivateCouponAPI = (id: string): Promise<{ success: boolean }> => {
-  console.log(`Activando cupón con ID: ${id}`);
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({ success: true });
-    }, 1500);
-  });
-};
-// ------------------------------------
+import * as Haptics from 'expo-haptics';
+import { activateCoupon } from '../src/api/coupon'; // Import the new API client
 
 export default function CouponActivationScreen() {
   const params = useLocalSearchParams();
-  const { couponId, couponDescription } = params;
+  const { couponId, couponDescription } = params; // Obtienes parámetros de la ruta
 
   const [isLoading, setIsLoading] = useState(false);
   const [isActivated, setIsActivated] = useState(false);
@@ -32,15 +29,12 @@ export default function CouponActivationScreen() {
     
     setIsLoading(true);
     try {
-      const response = await fakeActivateCouponAPI(couponId as string);
+      // Usar la función del nuevo cliente de API
+      const response = await activateCoupon(couponId as string, "mock-user-id"); // Asumiendo un user ID mock
       if (response.success) {
-        // <-- 2. ¡AQUÍ OCURRE LA MAGIA MULTISENSORIAL! -->
-        // Primero, la vibración para una respuesta inmediata.
         Haptics.notificationAsync(
           Haptics.NotificationFeedbackType.Success
         );
-        
-        // Luego, actualizamos el estado para la respuesta visual.
         setIsActivated(true);
         setShowConfetti(true);
       } else {
