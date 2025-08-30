@@ -6,15 +6,9 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import com.gasolinerajsm.shared.api.ErrorResponse
+import jakarta.servlet.http.HttpServletRequest
 import java.time.LocalDateTime
-
-data class ErrorResponse(
-    val timestamp: LocalDateTime,
-    val status: Int,
-    val error: String,
-    val message: String,
-    val path: String? = null
-)
 
 @ControllerAdvice
 class GlobalExceptionHandler {
@@ -56,8 +50,11 @@ class GlobalExceptionHandler {
             timestamp = LocalDateTime.now(),
             status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
             error = "Internal Server Error",
-            message = "An unexpected error occurred. Please try again later."
+            message = "An unexpected error occurred. Please try again later.",
+            path = request.requestURI
         )
         return ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+}
     }
 }
