@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
 import { Button, Input, Label, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@ui-components";
 import { Station } from "@/lib/apiClient";
 import { useForm } from "react-hook-form";
@@ -72,21 +73,54 @@ export function StationForm({ station, isOpen, onClose, onSave }: StationFormPro
               Nombre
             </Label>
             <Input id="name" {...register("name")} className="col-span-3" />
-            {errors.name && <p className="col-span-4 text-red-500 text-sm text-right">{errors.name.message}</p>}
+            <AnimatePresence>
+              {errors.name && (
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="col-span-4 text-red-500 text-sm text-right"
+                >
+                  {errors.name.message}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="latitude" className="text-right">
               Latitud
             </Label>
             <Input id="latitude" type="number" step="any" {...register("latitude", { valueAsNumber: true })} className="col-span-3" />
-            {errors.latitude && <p className="col-span-4 text-red-500 text-sm text-right">{errors.latitude.message}</p>}
+            <AnimatePresence>
+              {errors.latitude && (
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="col-span-4 text-red-500 text-sm text-right"
+                >
+                  {errors.latitude.message}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="longitude" className="text-right">
               Longitud
             </Label>
             <Input id="longitude" type="number" step="any" {...register("longitude", { valueAsNumber: true })} className="col-span-3" />
-            {errors.longitude && <p className="col-span-4 text-red-500 text-sm text-right">{errors.longitude.message}</p>}
+            <AnimatePresence>
+              {errors.longitude && (
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="col-span-4 text-red-500 text-sm text-right"
+                >
+                  {errors.longitude.message}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={onClose} type="button">Cancelar</Button>

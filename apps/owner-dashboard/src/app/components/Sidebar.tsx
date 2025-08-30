@@ -13,6 +13,8 @@ import {
   ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 
+import ThemeToggle from './ThemeToggle'; // Import ThemeToggle
+
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Estaciones', href: '/stations', icon: BuildingStorefrontIcon },
@@ -67,6 +69,10 @@ export default function Sidebar() {
           <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
           Cerrar Sesión
         </button>
+
+        <div className="mt-4 flex justify-center">
+          <ThemeToggle />
+        </div>
       </div>
     </div>
   );
