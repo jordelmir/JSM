@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { DollarSign, Package, Users } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ui-components";
 import { getTodaySummary } from "@/lib/apiClient";
 import { toast } from 'react-toastify';
 

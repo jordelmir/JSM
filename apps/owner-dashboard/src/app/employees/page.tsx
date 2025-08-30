@@ -347,7 +347,7 @@ export default function EmployeesPage() {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEditEmployee(employee)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-blue-600 hover:text-blue-900"
                         >
                           <PencilIcon className="w-4 h-4" />
                         </button>
@@ -384,9 +384,7 @@ export default function EmployeesPage() {
                   onChange={(e) =>
                     setNewEmployee({ ...newEmployee, name: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  placeholder="Juan Pérez"
-                />
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               </div>
 
               <div>
@@ -399,9 +397,7 @@ export default function EmployeesPage() {
                   onChange={(e) =>
                     setNewEmployee({ ...newEmployee, email: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  placeholder="juan@gasolinera-jsm.com"
-                />
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               </div>
 
               <div>
@@ -414,9 +410,7 @@ export default function EmployeesPage() {
                   onChange={(e) =>
                     setNewEmployee({ ...newEmployee, phone: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  placeholder="+506 8888-0000"
-                />
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               </div>
 
               <div>
@@ -431,8 +425,7 @@ export default function EmployeesPage() {
                       stationId: e.target.value,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                >
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   <option value="">Seleccionar estación</option>
                   {stationOptions.map((station) => (
                     <option key={station.id} value={station.id}>
@@ -486,7 +479,7 @@ export default function EmployeesPage() {
                       name: e.target.value,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
@@ -503,7 +496,7 @@ export default function EmployeesPage() {
                       email: e.target.value,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
@@ -520,7 +513,7 @@ export default function EmployeesPage() {
                       phone: e.target.value,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
@@ -536,8 +529,7 @@ export default function EmployeesPage() {
                       stationId: e.target.value,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                >
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   {stationOptions.map((station) => (
                     <option key={station.id} value={station.id}>
                       {station.name}

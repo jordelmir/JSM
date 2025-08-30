@@ -142,7 +142,7 @@ export default function SettingsPage() {
                           e.target.value
                         )
                       }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
 
@@ -156,7 +156,7 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         handleSettingChange('business', 'taxId', e.target.value)
                       }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
                 </div>
@@ -172,7 +172,7 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         handleSettingChange('business', 'phone', e.target.value)
                       }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
 
@@ -186,7 +186,7 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         handleSettingChange('business', 'email', e.target.value)
                       }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
                 </div>
@@ -312,7 +312,7 @@ export default function SettingsPage() {
                           parseInt(e.target.value)
                         )
                       }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
 
@@ -330,7 +330,7 @@ export default function SettingsPage() {
                           parseInt(e.target.value)
                         )
                       }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
                 </div>
@@ -345,7 +345,7 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         handleSettingChange('raffle', 'drawDay', e.target.value)
                       }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="sunday">Domingo</option>
                       <option value="monday">Lunes</option>
@@ -371,7 +371,7 @@ export default function SettingsPage() {
                           e.target.value
                         )
                       }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
                 </div>
@@ -458,7 +458,7 @@ export default function SettingsPage() {
                           parseInt(e.target.value)
                         )
                       }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
 
@@ -476,13 +476,13 @@ export default function SettingsPage() {
                           parseInt(e.target.value)
                         )
                       }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
                 </div>
 
                 <div className="pt-4 border-t border-gray-200">
-                  <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                  <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-red-600 text-white px-4 py-2 hover:bg-red-700">
                     Cambiar Contraseña
                   </button>
                 </div>

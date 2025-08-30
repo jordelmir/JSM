@@ -14,13 +14,10 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@gasolinera-jsm/shared": ["packages/shared/src/index.ts"]
-    }
-  },
-  "baseUrl": ".",
-    "paths": {
       "@gasolinera-jsm/shared": ["packages/shared/src/index.ts"],
-      "@gasolinera-jsm/shared/store/*": ["packages/shared/src/store/*"]
+      "@gasolinera-jsm/shared/store/*": ["packages/shared/src/store/*"],
+      "@ui-components": ["packages/ui-components/src/index.ts"]
     }
   },
-  "exclude": ["node_modules", "tmp]
+  "exclude": ["node_modules", "tmp"]
+}

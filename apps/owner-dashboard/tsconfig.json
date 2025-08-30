@@ -25,7 +25,8 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ]
+      ],
+      "@ui-components": ["../../packages/ui-components/src/components"]
     },
     "target": "ES2017"
   },

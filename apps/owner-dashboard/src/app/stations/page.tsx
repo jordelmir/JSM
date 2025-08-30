@@ -181,7 +181,7 @@ export default function StationsPage() {
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white px-6 py-3 hover:bg-blue-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               <PlusIcon className="w-5 h-5 mr-2" />
               Nueva Estación
@@ -337,27 +337,20 @@ export default function StationsPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         onClick={() => toggleStationStatus(station.id)}
-                        className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full transition-colors duration-200 ${
-                          station.isActive
-                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                            : 'bg-red-100 text-red-800 hover:bg-red-200'
-                        }`}
-                      >
-                        {station.isActive ? 'Activa' : 'Inactiva'}
-                      </button>
+                        className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-3 py-1 text-xs font-semibold rounded-full transition-colors duration-200 ${station.isActive ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200'}`}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-3">
                         <button
                           onClick={() => handleEditStation(station)}
-                          className="text-blue-600 hover:text-blue-900 hover:bg-blue-50 p-2 rounded-lg transition-all duration-200"
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-blue-600 hover:text-blue-900 hover:bg-blue-50 p-2"
                           title="Editar estación"
                         >
                           <PencilIcon className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteStation(station.id)}
-                          className="text-red-600 hover:text-red-900 hover:bg-red-50 p-2 rounded-lg transition-all duration-200"
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-red-600 hover:text-red-900 hover:bg-red-50 p-2"
                           title="Eliminar estación"
                         >
                           <TrashIcon className="w-4 h-4" />
@@ -382,10 +375,7 @@ export default function StationsPage() {
               </h3>
               <button
                 onClick={resetForm}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-all duration-200"
-              >
-                <XMarkIcon className="w-5 h-5" />
-              </button>
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2"
             </div>
 
             <div className="p-6 space-y-6">
@@ -399,12 +389,7 @@ export default function StationsPage() {
                   onChange={(e) =>
                     setNewStation({ ...newStation, name: e.target.value })
                   }
-                  className={`w-full border-2 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-200 ${
-                    errors.name
-                      ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50'
-                      : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white'
-                  }`}
-                  placeholder="Ej: Gasolinera JSM Centro"
+                  className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.name ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white'}`}
                 />
                 {errors.name && (
                   <div className="flex items-center mt-2 text-red-600">
@@ -426,12 +411,7 @@ export default function StationsPage() {
                     onChange={(e) =>
                       setNewStation({ ...newStation, latitude: parseFloat(e.target.value) }) // Parse to number
                     }
-                    className={`w-full border-2 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-200 ${
-                      errors.latitude
-                        ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50'
-                        : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white'
-                    }`}
-                    placeholder="9.9281"
+                    className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.latitude ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white'}`}
                   />
                   {errors.latitude && (
                     <div className="flex items-center mt-1 text-red-600">
@@ -455,12 +435,7 @@ export default function StationsPage() {
                         longitude: e.target.value,
                       })
                     }
-                    className={`w-full border-2 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-200 ${
-                      errors.longitude
-                        ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50'
-                        : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white'
-                    }`}
-                    placeholder="-84.0907"
+                    className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.longitude ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50' : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white'}`}
                   />
                   {errors.longitude && (
                     <div className="flex items-center mt-1 text-red-600">
@@ -476,14 +451,14 @@ export default function StationsPage() {
               <button
                 onClick={resetForm}
                 disabled={isSubmitting}
-                className="px-6 py-3 text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium disabled:opacity-50"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-6 py-3 text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleAddStation}
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none flex items-center"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-6 py-3 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center"
               >
                 {isSubmitting ? (
                   <>
@@ -512,10 +487,7 @@ export default function StationsPage() {
               </h3>
               <button
                 onClick={() => setEditingStation(null)}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-all duration-200"
-              >
-                <XMarkIcon className="w-5 h-5" />
-              </button>
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2"
             </div>
 
             <div className="p-6 space-y-6">
@@ -532,7 +504,7 @@ export default function StationsPage() {
                       name: e.target.value,
                     })
                   }
-                  className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 bg-white"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
@@ -551,7 +523,7 @@ export default function StationsPage() {
                         latitude: parseFloat(e.target.value),
                       })
                     }
-                    className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 bg-white"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
                 <div>
@@ -568,7 +540,7 @@ export default function StationsPage() {
                         longitude: parseFloat(e.target.value),
                       })
                     }
-                    className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 bg-white"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -578,14 +550,14 @@ export default function StationsPage() {
               <button
                 onClick={() => setEditingStation(null)}
                 disabled={isSubmitting}
-                className="px-6 py-3 text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium disabled:opacity-50"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-6 py-3 text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleUpdateStation}
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none flex items-center"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-6 py-3 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center"
               >
                 {isSubmitting ? (
                   <>

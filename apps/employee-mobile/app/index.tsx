@@ -4,7 +4,7 @@ import {
 } from "react-native";
 import { BarCodeScanner } from 'expo-barcode-scanner'; // Add this import
 
-import { createTicket, validateQRCode } from "libs/api/employee";
+import { createTicket, validateQRCode } from "../src/api/employee";
 import { useAuth } from "../hooks/useAuth"; // Keep useAuth for now, but its usage will change
 
 export default function App() {

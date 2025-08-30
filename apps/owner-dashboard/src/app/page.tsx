@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import {
   ChartBarIcon,
   BuildingStorefrontIcon,
@@ -10,18 +10,19 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
 } from '@heroicons/react/24/outline';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from 'recharts';
-import { DashboardData } from '@/types/dashboard'; // Import your data types
+
+// Lazy load Recharts components
+const LineChart = lazy(() => import('recharts').then(mod => ({ default: mod.LineChart })) );
+const Line = lazy(() => import('recharts').then(mod => ({ default: mod.Line })) );
+const XAxis = lazy(() => import('recharts').then(mod => ({ default: mod.XAxis })) );
+const YAxis = lazy(() => import('recharts').then(mod => ({ default: mod.YAxis })) );
+const CartesianGrid = lazy(() => import('recharts').then(mod => ({ default: mod.CartesianGrid })) );
+const Tooltip = lazy(() => import('recharts').then(mod => ({ default: mod.Tooltip })) );
+const ResponsiveContainer = lazy(() => import('recharts').then(mod => ({ default: mod.ResponsiveContainer })) );
+const BarChart = lazy(() => import('recharts').then(mod => ({ default: mod.BarChart })) );
+const Bar = lazy(() => import('recharts').then(mod => ({ default: mod.Bar })) );
+
+import { useDashboardStore } from '@/store/dashboardStore'; // Import the Zustand store
 
 // Helper function to format numbers consistently
 const formatNumber = (num: number): string => {
@@ -29,32 +30,11 @@ const formatNumber = (num: number): string => {
 };
 
 export default function DashboardPage() {
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: dashboardData, isLoading, error, fetchDashboardData } = useDashboardStore();
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        // Replace with your actual API endpoint
-        const response = await fetch('/api/dashboard-summary'); // Example API endpoint
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: DashboardData = await response.json();
-        setDashboardData(data);
-      } catch (err) {
-        console.error("Failed to fetch dashboard data:", err);
-        setError("Failed to load dashboard data. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchDashboardData();
-  }, []); // Empty dependency array means this runs once on mount
+  }, [fetchDashboardData]); // fetchDashboardData is a stable function from Zustand
 
   if (isLoading) {
     return (
@@ -82,7 +62,7 @@ export default function DashboardPage() {
     );
   }
 
-  // Use dashboardData instead of mockData
+  // Use dashboardData from the store
   const { overview, weeklyData, topStations, employeePerformance } = dashboardData;
 
   return (
@@ -100,7 +80,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white px-4 py-2 hover:bg-blue-700">
                 Generar Reporte
               </button>
             </div>
@@ -187,21 +167,23 @@ export default function DashboardPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Tickets por Día (Esta Semana)
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="tickets"
-                  stroke="#3B82F6"
-                  strokeWidth={3}
-                  dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <Suspense fallback={<div>Cargando gráfico...</div>}>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={weeklyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="tickets"
+                    stroke="#3B82F6"
+                    strokeWidth={3}
+                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </Suspense>
           </div>
 
           {/* Revenue Chart */}
@@ -209,20 +191,22 @@ export default function DashboardPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Ingresos por Día (Esta Semana)
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value) => [
-                    `₡${Number(value).toLocaleString()}`,
-                    'Ingresos',
-                  ]}
-                />
-                <Bar dataKey="revenue" fill="#10B981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <Suspense fallback={<div>Cargando gráfico...</div>}>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={weeklyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value) => [
+                      `₡${Number(value).toLocaleString()}`,
+                      'Ingresos',
+                    ]}
+                  />
+                  <Bar dataKey="revenue" fill="#10B981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </Suspense>
           </div>
         </div>
 

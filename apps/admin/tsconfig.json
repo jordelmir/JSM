@@ -20,7 +20,8 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ]
+      ],
+      "@ui-components": ["../../packages/ui-components/src/components"]
     }
   },
   "include": [
