@@ -71,16 +71,25 @@ export default function DashboardPage() {
       name: 'Ventas Totales',
       value: `$${dashboardData.totalSales.toFixed(2)}`,
       icon: ChartBarIcon,
+      sparklineData: dashboardData.salesOverTime, // Pass sales data for sparkline
+      sparklineDataKey: 'sales', // Key for sales data
+      sparklineColor: '#8884d8', // Color for sales sparkline
     },
     {
       name: 'Empleados Activos',
       value: dashboardData.activeEmployees,
       icon: UsersIcon,
+      sparklineData: dashboardData.employeeActivityOverTime, // Assuming this data exists
+      sparklineDataKey: 'activity', // Key for employee activity
+      sparklineColor: '#82ca9d', // Color for employee activity sparkline
     },
     {
       name: 'Estaciones Operativas',
       value: dashboardData.totalStations,
       icon: BuildingStorefrontIcon,
+      sparklineData: dashboardData.stationActivityOverTime, // Assuming this data exists
+      sparklineDataKey: 'activity', // Key for station activity
+      sparklineColor: '#ffc658', // Color for station activity sparkline
     },
   ];
 
