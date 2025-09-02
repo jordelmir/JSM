@@ -27,7 +27,7 @@ interface AdSequenceRepository : JpaRepository<AdSequence, String> {
         AND s.createdAt >= :since
     """)
     fun findActiveSequences(
-        @Param("since") since: LocalDateTime = LocalDateTime.now().minusHours(24)
+        @Param("since") since: Instant = Instant.now().minusSeconds(24 * 3600) // Changed to Instant
     ): List<AdSequence>
 
     /**
@@ -67,7 +67,7 @@ interface AdSequenceRepository : JpaRepository<AdSequence, String> {
     """)
     fun countCompletedSequencesForUser(
         @Param("userId") userId: String,
-        @Param("since") since: LocalDateTime
+        @Param("since") since: Instant // Changed to Instant
     ): Long
 
     /**
@@ -80,7 +80,6 @@ interface AdSequenceRepository : JpaRepository<AdSequence, String> {
         AND s.rewardClaimed = false
     """)
     fun findSequencesWithPendingRewards(): List<AdSequence>
-}
 
     /**
      * Count sequences by status
@@ -91,3 +90,4 @@ interface AdSequenceRepository : JpaRepository<AdSequence, String> {
      * Find sequences by user and status
      */
     fun findByUserIdAndStatus(userId: String, status: String): List<AdSequence>
+}

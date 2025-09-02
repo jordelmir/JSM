@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/store/authStore';
+import { useAuthStore } from '@gasolinera-jsm/shared/store/authStore';
 import { loginAdvertiser } from '@/lib/apiClient';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { useTranslation } from 'react-i18next'; // New import
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -21,6 +22,7 @@ const formSchema = z.object({
 export default function LoginPage() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
+  const { t } = useTranslation(); // Use useTranslation hook
   const {
     register,
     handleSubmit,
@@ -32,11 +34,11 @@ export default function LoginPage() {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       const { token } = await loginAdvertiser(data.email, data.password);
-      login(token, null);
-      toast.success("Login successful!");
+      login(null, token);
+      toast.success(t("Login successful!")); // Translated
       router.push('/dashboard');
     } catch (err: any) {
-      toast.error(err.message || 'An unknown error occurred.');
+      toast.error(err.message || t('An unknown error occurred.')); // Translated
     }
   };
 
@@ -45,37 +47,37 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-sm">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle className="text-2xl">Advertiser Portal Login</CardTitle>
+            <CardTitle className="text-2xl">{t("Advertiser Portal Login")}</CardTitle> {/* Translated */}
             <CardDescription>
-              Ingresa tus credenciales para acceder al panel de control.
+              {t("Enter your credentials to access the control panel.")} {/* Translated */}
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="advertiser@example.com" 
-                required 
+              <Label htmlFor="email">{t("Email")}</Label> {/* Translated */}
+              <Input
+                id="email"
+                type="email"
+                placeholder={t("advertiser@example.com")} {/* Translated */}
+                required
                 {...register("email")}
                 disabled={isSubmitting}
               />
               {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email.message}</p>
+                <p className="text-red-500 text-sm">{t(errors.email.message || "Invalid email.")}</p> {/* Translated */}
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password" 
-                type="password" 
+              <Label htmlFor="password">{t("Password")}</Label> {/* Translated */}
+              <Input
+                id="password"
+                type="password"
                 required
                 {...register("password")}
                 disabled={isSubmitting}
               />
               {errors.password && (
-                <p className="text-red-500 text-sm">{errors.password.message}</p>
+                <p className="text-red-500 text-sm">{t(errors.password.message || "Invalid password.")}</p> {/* Translated */}
               )}
             </div>
           </CardContent>
@@ -83,10 +85,10 @@ export default function LoginPage() {
             <Button className="w-full" type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
-                  <Spinner /> Logging in...
+                  <Spinner /> {t("Logging in...")} {/* Translated */}
                 </div>
               ) : (
-                'Login'
+                t('Login') // Translated
               )}
             </Button>
           </CardFooter>

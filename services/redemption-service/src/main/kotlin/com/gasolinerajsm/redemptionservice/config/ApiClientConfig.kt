@@ -12,17 +12,17 @@ import org.springframework.retry.support.RetryTemplate
 
 @Configuration
 @EnableRetry
-class ApiClientConfig {
+class ApiClientConfig(private val adEngineClientProperties: AdEngineClientProperties) { // Inject AdEngineClientProperties
 
     @Bean
     fun retryTemplate(): RetryTemplate {
         val retryTemplate = RetryTemplate()
         val fixedBackOffPolicy = FixedBackOffPolicy()
-        fixedBackOffPolicy.backOffPeriod = 1000L // 1 second backoff
+        fixedBackOffPolicy.backOffPeriod = adEngineClientProperties.retryBackoffPeriodMs // Use configurable backoff
         retryTemplate.setBackOffPolicy(fixedBackOffPolicy)
 
         val retryPolicy = SimpleRetryPolicy()
-        retryPolicy.maxAttempts = 3 // Retry up to 3 times
+        retryPolicy.maxAttempts = adEngineClientProperties.retryMaxAttempts // Use configurable max attempts
         retryTemplate.setRetryPolicy(retryPolicy)
         return retryTemplate
     }
@@ -38,7 +38,7 @@ class ApiClientConfig {
     @Bean
     fun adApi(restTemplateBuilder: RestTemplateBuilder): AdApi {
         val apiClient = ApiClient(restTemplateBuilder.build())
-        apiClient.basePath = "https://ad-engine:8080" // URL de servicio interna en Docker, usar HTTPS para Zero Trust
+        apiClient.basePath = adEngineClientProperties.baseUrl // Use configurable base URL
         return AdApi(apiClient)
     }
 }

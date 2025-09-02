@@ -25,7 +25,7 @@ interface CampaignRepository : JpaRepository<AdCampaign, Long> {
     """)
     fun findActiveCampaignsForStation(
         @Param("stationId") stationId: String,
-        @Param("currentDate") currentDate: LocalDateTime = LocalDateTime.now()
+        @Param("currentDate") currentDate: Instant = Instant.now() // Changed to Instant
     ): List<AdCampaign>
 
     /**
@@ -33,8 +33,8 @@ interface CampaignRepository : JpaRepository<AdCampaign, Long> {
      */
     fun findByStatusAndStartDateBeforeAndEndDateAfter(
         status: String,
-        startDate: LocalDateTime,
-        endDate: LocalDateTime
+        startDate: Instant, // Changed to Instant
+        endDate: Instant // Changed to Instant
     ): List<AdCampaign>
 
     /**
@@ -47,7 +47,7 @@ interface CampaignRepository : JpaRepository<AdCampaign, Long> {
         AND c.endDate >= :currentDate
     """)
     fun findActiveCampaigns(
-        @Param("currentDate") currentDate: LocalDateTime = LocalDateTime.now()
+        @Param("currentDate") currentDate: Instant = Instant.now() // Changed to Instant
     ): List<AdCampaign>
 
     /**
@@ -70,7 +70,7 @@ interface CampaignRepository : JpaRepository<AdCampaign, Long> {
         AND c.endDate >= :currentDate
     """)
     fun countActiveCampaigns(
-        @Param("currentDate") currentDate: LocalDateTime = LocalDateTime.now()
+        @Param("currentDate") currentDate: Instant = Instant.now()
     ): Long
 
     /**
@@ -84,6 +84,6 @@ interface CampaignRepository : JpaRepository<AdCampaign, Long> {
         AND c.endDate >= :currentDate
     """)
     fun findCampaignsWithBudget(
-        @Param("currentDate") currentDate: LocalDateTime = LocalDateTime.now()
+        @Param("currentDate") currentDate: Instant = Instant.now()
     ): List<AdCampaign>
 }

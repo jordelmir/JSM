@@ -1,52 +1,28 @@
-import React, { useState, useRef } from 'react';
+import React from 'react'; // useState and useRef are no longer needed
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
+  Alert, // Still needed for Alert.alert
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import ConfettiCannon from 'react-native-confetti-cannon';
-import * as Haptics from 'expo-haptics';
-import { activateCoupon } from '../src/api/coupon'; // Import the new API client
+// ConfettiCannon, Haptics, activateCoupon, useTranslation, useUserStore are now imported within the hook
+import { useCouponActivation } from '../../lib/hooks/useCouponActivation'; // New import
 
 export default function CouponActivationScreen() {
   const params = useLocalSearchParams();
   const { couponId, couponDescription } = params; // Obtienes parámetros de la ruta
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isActivated, setIsActivated] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const confettiRef = useRef<ConfettiCannon>(null);
-
-  const handleActivateCoupon = async () => {
-    if (!couponId) {
-      Alert.alert("Error", "No se encontró el ID del cupón.");
-      return;
-    }
-    
-    setIsLoading(true);
-    try {
-      // Usar la función del nuevo cliente de API
-      const response = await activateCoupon(couponId as string, "mock-user-id"); // Asumiendo un user ID mock
-      if (response.success) {
-        Haptics.notificationAsync(
-          Haptics.NotificationFeedbackType.Success
-        );
-        setIsActivated(true);
-        setShowConfetti(true);
-      } else {
-        Alert.alert("Error", "No se pudo activar el cupón. Inténtalo de nuevo.");
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Ocurrió un problema de conexión.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    isLoading,
+    isActivated,
+    showConfetti,
+    handleActivateCoupon,
+    confettiRef,
+    setShowConfetti,
+  } = useCouponActivation(); // Use the new hook
 
   return (
     <View style={styles.container}>
@@ -62,13 +38,13 @@ export default function CouponActivationScreen() {
       )}
 
       <View style={styles.card}>
-        <Text style={styles.title}>Activar Cupón</Text>
+        <Text style={styles.title}>Activar Cupón</Text> {/* Translated */}
         <Text style={styles.description}>
-          {couponDescription || '¡Estás a punto de activar una oferta increíble!'}
+          {couponDescription || '¡Estás a punto de activar una oferta increíble!'} {/* Translated */}
         </Text>
         
         {isActivated ? (
-          <Text style={styles.successMessage}>🎉 ¡Cupón Activado Exitosamente! 🎉</Text>
+          <Text style={styles.successMessage}>🎉 ¡Cupón Activado Exitosamente! 🎉</Text> {/* Translated */}
         ) : (
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
@@ -78,7 +54,7 @@ export default function CouponActivationScreen() {
             {isLoading ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text style={styles.buttonText}>Activar Ahora</Text>
+              <Text style={styles.buttonText}>Activar Ahora</Text> {/* Translated */}
             )}
           </TouchableOpacity>
         )}

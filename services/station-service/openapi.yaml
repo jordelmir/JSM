@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: Station Service API
   version: 1.0.0
-  description: API for managing gas stations.
+  description: API for managing gas stations, including geospatial search.
 servers:
   - url: http://localhost:8083
     description: Local Development Server
@@ -103,6 +103,50 @@ paths:
           description: Station deleted successfully
         '404':
           description: Station not found
+  /stations/nearby:
+    get:
+      summary: Find stations near a given geographical point
+      operationId: getNearbyStations
+      parameters:
+        - name: latitude
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            minimum: -90
+            maximum: 90
+          description: Latitude of the center point
+        - name: longitude
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            minimum: -180
+            maximum: 180
+          description: Longitude of the center point
+        - name: distanceMeters
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 5000
+            minimum: 100
+            maximum: 50000
+          description: Search radius in meters
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of nearby stations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StationDto'
 components:
   securitySchemes:
     bearerAuth:
@@ -117,12 +161,15 @@ components:
           type: string
         name:
           type: string
-        latitude:
-          type: number
-          format: double
-        longitude:
-          type: number
-          format: double
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+              format: double
+            longitude:
+              type: number
+              format: double
         status:
           type: string
           enum:

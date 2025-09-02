@@ -18,18 +18,19 @@ data class ErrorResponse(
 )
 
 import io.micrometer.core.instrument.MeterRegistry // Import MeterRegistry
-import jakarta.servlet.http.HttpServletRequest // Import HttpServletRequest
+import org.springframework.web.context.request.RequestContextHolder // New import
+import org.springframework.web.context.request.ServletRequestAttributes // New import
 
 @ControllerAdvice
 class GlobalExceptionHandler(
-    private val meterRegistry: MeterRegistry, // Inject MeterRegistry
-    private val request: HttpServletRequest // Inject HttpServletRequest
+    private val meterRegistry: MeterRegistry // Inject MeterRegistry
 ) {
 
     private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationExceptions(ex: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
+        val request = (RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes).request
         meterRegistry.counter("http_requests_errors_total", "status", "400", "exception", "MethodArgumentNotValidException").increment()
         val errors = ex.bindingResult.fieldErrors
             .map { it.defaultMessage }
@@ -49,6 +50,7 @@ class GlobalExceptionHandler(
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ErrorResponse> {
+        val request = (RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes).request
         meterRegistry.counter("http_requests_errors_total", "status", "400", "exception", "IllegalArgumentException").increment()
         logger.warn("Illegal argument: {} for path {} {}", ex.message, request.method, request.requestURI)
         val errorResponse = ErrorResponse(
@@ -64,6 +66,7 @@ class GlobalExceptionHandler(
 
     @ExceptionHandler(Exception::class)
     fun handleGenericException(ex: Exception): ResponseEntity<ErrorResponse> {
+        val request = (RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes).request
         meterRegistry.counter("http_requests_errors_total", "status", "500", "exception", ex.javaClass.simpleName).increment()
         logger.error("An unexpected error occurred: {} for path {} {}", ex.message, request.method, request.requestURI, ex)
         val errorResponse = ErrorResponse(

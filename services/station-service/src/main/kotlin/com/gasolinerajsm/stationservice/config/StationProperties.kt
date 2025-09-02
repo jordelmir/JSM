@@ -1,10 +1,11 @@
 package com.gasolinerajsm.stationservice.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.ConstructorBinding // New import
 import org.springframework.stereotype.Component
 
-@Component
+@ConstructorBinding // New annotation
 @ConfigurationProperties(prefix = "station")
 data class StationProperties(
-    var idPrefix: String = "stn_"
+    val idPrefix: String = "stn_" // Changed to val
 )

@@ -2,116 +2,47 @@ openapi: 3.0.0
 info:
   title: Raffle Service API
   version: 1.0.0
-  description: API for managing raffles and draws.
+  description: API for managing raffles and draws, including provably fair verification.
 servers:
   - url: http://localhost:8085
     description: Local Development Server
 paths:
-  /raffles/{period}/close:
-    post:
-      summary: Asynchronously close a raffle period
-      operationId: closeRafflePeriod
-      parameters:
-        - name: period
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: '^\\d{4}-\\d{2}-\\d{2}
-  /raffles/{id}/draw:
-    post:
-      summary: Execute a raffle draw
-      operationId: executeRaffleDraw
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          description: ID of the raffle to draw
+  /raffles:
+    get:
+      summary: Get all raffles
+      operationId: getAllRaffles
       responses:
         '200':
-          description: Raffle drawn successfully
+          description: List of raffles
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RaffleWinner'
-        '400':
-          description: Invalid raffle ID or not in CLOSED status
-        '404':
-          description: Raffle not found
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-  schemas:
-    Raffle:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        period:
-          type: string
-        merkleRoot:
-          type: string
-        status:
-          type: string
-          enum:
-            - OPEN
-            - CLOSED
-            - DRAWN
-        drawAt:
-          type: string
-          format: date-time
-        externalSeed:
-          type: string
-        winnerEntryId:
-          type: string
-    RaffleWinner:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        raffleId:
-          type: integer
-          format: int64
-        userId:
-          type: string
-        winningPointId:
-          type: string
-        prize:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-
-          description: Raffle period in YYYY-MM-DD format
+                type: array
+                items:
+                  $ref: '#/components/schemas/Raffle'
+      security:
+        - bearerAuth: []
+    post:
+      summary: Create a new raffle
+      operationId: createRaffle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRaffleRequest'
       responses:
-        '202':
-          description: Raffle closing process initiated.
+        '201':
+          description: Raffle created successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  jobId:
-                    type: string
-                  statusUrl:
-                    type: string
-        '400':
-          description: Invalid period format or no points found
-        '409':
-          description: Raffle already closed or drawn
+                $ref: '#/components/schemas/Raffle'
       security:
         - bearerAuth: []
   /raffles/{id}:
     get:
-      summary: Get raffle status and details
+      summary: Get raffle details by ID
       operationId: getRaffleById
       parameters:
         - name: id
@@ -120,8 +51,7 @@ components:
           schema:
             type: integer
             format: int64
-      security:
-        - bearerAuth: []
+          description: ID of the raffle to retrieve
       responses:
         '200':
           description: Raffle details
@@ -131,10 +61,12 @@ components:
                 $ref: '#/components/schemas/Raffle'
         '404':
           description: Raffle not found
+      security:
+        - bearerAuth: []
   /raffles/{id}/draw:
     post:
-      summary: Execute a raffle draw
-      operationId: executeRaffleDraw
+      summary: Execute a raffle draw for a specific raffle
+      operationId: drawRaffle
       parameters:
         - name: id
           in: path
@@ -143,6 +75,12 @@ components:
             type: integer
             format: int64
           description: ID of the raffle to draw
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DrawRaffleRequest'
       responses:
         '200':
           description: Raffle drawn successfully
@@ -154,6 +92,52 @@ components:
           description: Invalid raffle ID or not in CLOSED status
         '404':
           description: Raffle not found
+      security:
+        - bearerAuth: []
+  /raffles/{id}/winner:
+    get:
+      summary: Get the winner of a specific raffle
+      operationId: getRaffleWinner
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the raffle to retrieve the winner for
+      responses:
+        '200':
+          description: Raffle winner details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RaffleWinner'
+        '404':
+          description: Raffle not found or winner not yet drawn
+      security:
+        - bearerAuth: []
+  /raffles/{id}/verify:
+    get:
+      summary: Get details to verify the fairness of a raffle draw
+      operationId: getRaffleVerificationDetails
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the raffle to get verification details for
+      responses:
+        '200':
+          description: Raffle verification details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RaffleVerificationDetailsDto'
+        '404':
+          description: Raffle not found or not yet drawn
 components:
   securitySchemes:
     bearerAuth:
@@ -202,3 +186,48 @@ components:
         createdAt:
           type: string
           format: date-time
+    CreateRaffleRequest:
+      type: object
+      required:
+        - period
+        - pointEntries
+      properties:
+        period:
+          type: string
+          format: date
+          description: Period of the raffle in YYYY-MM-DD format
+        pointEntries:
+          type: array
+          items:
+            type: string
+          description: List of point IDs participating in the raffle
+    DrawRaffleRequest:
+      type: object
+      required:
+        - clientSeed
+      properties:
+        clientSeed:
+          type: string
+          description: Client-provided seed for the draw
+    RaffleVerificationDetailsDto:
+      type: object
+      properties:
+        raffleId:
+          type: string
+        serverSeedHash:
+          type: string
+        clientSeed:
+          type: string
+          nullable: true
+        publicSeed:
+          type: string
+        finalCombinedSeed:
+          type: string
+        winnerId:
+          type: string
+        merkleRoot:
+          type: string
+        entries:
+          type: array
+          items:
+            type: string

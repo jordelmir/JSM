@@ -1,8 +1,10 @@
 package com.gasolinerajsm.adengine.application.service
 
+import com.gasolinerajsm.adengine.adapter.out.persistence.repository.AdImpressionRepository
 import com.gasolinerajsm.adengine.dto.AdCreativeResponse
 import com.gasolinerajsm.adengine.dto.AdSelectionRequest
 import com.gasolinerajsm.adengine.exception.NoActiveCampaignFoundException // Import the new exception
+import com.gasolinerajsm.adengine.model.AdImpression
 import com.gasolinerajsm.adengine.repository.CampaignRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -13,10 +15,13 @@ import kotlin.random.Random // Import Random
 import io.micrometer.core.instrument.MeterRegistry // Import Micrometer
 
 import org.springframework.cache.annotation.Cacheable // Import Cacheable
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 
 @Service
 class AdSelectionService(
     private val campaignRepository: CampaignRepository,
+    private val adImpressionRepository: AdImpressionRepository,
     @Value("\${ad.fallback.url}")
     private val fallbackAdUrl: String,
     private val meterRegistry: MeterRegistry // Inject MeterRegistry
@@ -61,5 +66,19 @@ class AdSelectionService(
             meterRegistry.counter("ad_selection.fallback", "station_id", request.stationId.toString()).increment()
             throw NoActiveCampaignFoundException(request.stationId) // Throw custom exception
         }
+    }
+
+    fun getImpressions(campaignId: Long?, pageable: Pageable): Page<AdImpression> {
+        logger.info("Fetching impressions. CampaignId filter: {}, Pageable: {}", campaignId ?: "none", pageable)
+        return if (campaignId != null) {
+            adImpressionRepository.findByCampaignId(campaignId, pageable)
+        } else {
+            adImpressionRepository.findAll(pageable)
+        }
+    }
+
+    fun countImpressions(): Long {
+        logger.info("Counting total impressions.")
+        return adImpressionRepository.count()
     }
 }

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } => "react";
-import { DollarSign, Megaphone, TrendingUp } from "lucide-react";
+// Removed: import { useEffect, useState } from "react";
 import { DollarSign, Megaphone, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
-import { getCampaignPerformanceSummary } from "@/lib/apiClient"; // To be implemented
-import { toast } from 'react-toastify';
+// Removed: import { getCampaignPerformanceSummary } from "@/lib/apiClient";
+// Removed: import { toast } from 'react-toastify';
+import { useCampaignSummary } from "@/lib/hooks/useCampaignSummary"; // New import
+import { useTranslation } from "react-i18next"; // New import
 
 
 interface CampaignSummary {
@@ -16,26 +17,8 @@ interface CampaignSummary {
 }
 
 export default function AdvertiserDashboardPage() {
-  const [summary, setSummary] = useState<CampaignSummary | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchSummary = async () => {
-      try {
-        setIsLoading(true);
-        // Mock data for now, replace with actual API call
-        const data = await getCampaignPerformanceSummary();
-        setSummary(data);
-      } catch (err: any) {
-        setError(err.message);
-        toast.error(`Error loading campaign summary: ${err.message}`);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchSummary();
-  }, []);
+  const { t } = useTranslation(); // Use the new hook
+  const { summary, isLoading, error } = useCampaignSummary(); // Use the new hook
 
   if (isLoading) {
     return (
@@ -48,7 +31,7 @@ export default function AdvertiserDashboardPage() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-64 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-        <strong className="font-bold">Error!</strong>
+        <strong className="font-bold">{t("Error!")}</strong> {/* Translated */}
         <span className="block sm:inline">{error}</span>
       </div>
     );
@@ -59,40 +42,40 @@ export default function AdvertiserDashboardPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Impresiones Totales
+            {t("Total Impressions")} {/* Translated */}
           </CardTitle>
           <Megaphone className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{summary?.totalImpressions.toLocaleString()}</div>
           <p className="text-xs text-muted-foreground">
-            En todas tus campañas
+            {t("Across all your campaigns")} {/* Translated */}
           </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Presupuesto Gastado
+            {t("Budget Spent")} {/* Translated */}
           </CardTitle>
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">${summary?.totalBudgetSpent.toFixed(2)}</div>
           <p className="text-xs text-muted-foreground">
-            En todas tus campañas
+            {t("Across all your campaigns")} {/* Translated */}
           </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Rendimiento General</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("Overall Performance")}</CardTitle> {/* Translated */}
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">N/A</div>
+          <div className="text-2xl font-bold">{t("N/A")}</div> {/* Translated */}
           <p className="text-xs text-muted-foreground">
-            Datos no disponibles
+            {t("Data not available")} {/* Translated */}
           </p>
         </CardContent>
       </Card>

@@ -1,62 +1,40 @@
-import { useLoadingStore } from '../lib/stores/useLoadingStore';
-import { useUserStore } from '../app/store/userStore'; // Assuming userStore is here
-
-const API_BASE_URL = 'http://localhost:8080'; // Replace with your actual API base URL
-
-async function apiCall(endpoint: string, options: RequestInit = {}) {
-  const { startLoading, stopLoading } = useLoadingStore.getState();
-  const { token } = useUserStore.getState(); // Assuming token is in userStore
-
-  startLoading();
-  try {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string>),
-    };
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    if (!response.ok) {
-      let errorMessage = `Error: ${response.status}`;
-      try {
-        const errorBody = await response.json();
-        errorMessage = errorBody.message || errorMessage;
-      } catch (e) {
-        console.error('Error parsing error response:', e);
-      }
-      throw new Error(errorMessage);
-    }
-    
-    return response.status === 204 ? null : response.json();
-  } finally {
-    stopLoading();
-  }
-}
+import { apiFetch } from '@/packages/shared/src/lib/api'; // Import shared apiFetch
 
 // --- Coupon API Functions ---
 
+/**
+ * Activates a coupon for a given user.
+ * @param {string} couponId - The ID of the coupon to activate.
+ * @param {string} userId - The ID of the user activating the coupon.
+ * @returns {Promise<any>} A promise that resolves to the activation result.
+ */
 export const activateCoupon = async (couponId: string, userId: string): Promise<any> => {
-  return apiCall('/coupons/activate', {
+  return apiFetch('/coupons/activate', {
     method: 'POST',
     body: JSON.stringify({ couponId, userId }),
   });
 };
 
+/**
+ * Scans a QR code to redeem a coupon or perform a related action.
+ * @param {string} qrCode - The QR code string to scan.
+ * @param {string} userId - The ID of the user scanning the QR code.
+ * @returns {Promise<any>} A promise that resolves to the scan result.
+ */
 export const scanQRCode = async (qrCode: string, userId: string): Promise<any> => {
-  return apiCall('/coupons/scan', {
+  return apiFetch('/coupons/scan', {
     method: 'POST',
     body: JSON.stringify({ qrCode, userId }),
   });
 };
 
+/**
+ * Fetches an ad sequence for a given user and coupon.
+ * @param {string} userId - The ID of the user.
+ * @param {string} couponId - The ID of the coupon.
+ * @returns {Promise<any>} A promise that resolves to the ad sequence data.
+ */
 export const getAdSequence = async (userId: string, couponId: string): Promise<any> => {
   // This endpoint might need to be adjusted based on actual API
-  return apiCall(`/ad-sequence?userId=${userId}&couponId=${couponId}`);
+  return apiFetch(`/ad-sequence?userId=${userId}&couponId=${couponId}`);
 };

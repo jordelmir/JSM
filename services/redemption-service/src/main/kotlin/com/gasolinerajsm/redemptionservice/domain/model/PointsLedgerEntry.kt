@@ -8,8 +8,7 @@ import java.util.UUID
 @Table(name = "points_ledger")
 data class PointsLedgerEntry(
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    val id: UUID = UUID.randomUUID(),
+    val id: UUID = UUID.randomUUID(), // Removed @GeneratedValue
 
     @Column(name = "user_id", nullable = false)
     val userId: String,

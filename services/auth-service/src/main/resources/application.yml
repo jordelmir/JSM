@@ -34,12 +34,6 @@ spring:
 app:
   jwt:
     secret: ${JWT_SECRET}
-
-otp:
-  expiration-minutes: 10
-  length: 6
-  max-attempts: 5
-  lockout-minutes: 30
     refreshSecret: ${JWT_REFRESH_SECRET}
     expirationMs: 900000 # 15 minutes
     refreshExpirationMs: 604800000 # 7 days
@@ -47,6 +41,8 @@ otp:
     provider: ${OTP_PROVIDER:mock}
     length: 6
     expiration-minutes: 5
+    max-attempts: 5
+    lockout-minutes: 30
   auth:
     admin-email: ${ADMIN_EMAIL}
     admin-password: ${ADMIN_PASSWORD}

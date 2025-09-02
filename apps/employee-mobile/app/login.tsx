@@ -3,26 +3,28 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert
 } from "react-native";
 import { useAuth } from "../hooks/useAuth";
+import { useTranslation } from 'react-i18next'; // New import for translation
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login, loading, error } = useAuth();
+  const { t } = useTranslation(); // Initialize useTranslation
 
   const handleLogin = async () => {
     await login(email, password);
     if (error) {
-      Alert.alert("Error de inicio de sesión", error);
+      Alert.alert(t("Login Error"), error); // Translated
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Iniciar Sesión - Empleado</Text>
+      <Text style={styles.title}>{t("Login - Employee")}</Text> {/* Translated */}
 
       <TextInput
         style={styles.input}
-        placeholder="Correo Electrónico"
+        placeholder={t("Email Address")} {/* Translated */}
         placeholderTextColor="#ccc"
         value={email}
         onChangeText={setEmail}
@@ -31,7 +33,7 @@ export default function LoginScreen() {
       />
       <TextInput
         style={styles.input}
-        placeholder="Contraseña"
+        placeholder={t("Password")} {/* Translated */}
         placeholderTextColor="#ccc"
         value={password}
         onChangeText={setPassword}
@@ -46,7 +48,7 @@ export default function LoginScreen() {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Iniciar Sesión</Text>
+          <Text style={styles.buttonText}>{t("Login")}</Text> {/* Translated */}
         )}
       </TouchableOpacity>
 

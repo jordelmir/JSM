@@ -1,48 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react'; // useState and useEffect are no longer needed
 import { View, Text, StyleSheet, Button, ActivityIndicator } from 'react-native';
-import { CameraView, Camera } from 'expo-camera/next';
-import { useNavigation } from '@react-navigation/native';
-import { redeemQrCode } from '../api/apiClient';
-import Toast from 'react-native-toast-message';
+import { CameraView, Camera } from 'expo-camera/next'; // Still needed for CameraView component
+import { useNavigation } from '@react-navigation/native'; // Still needed for navigation
+import Toast from 'react-native-toast-message'; // Still needed for Toast.show
+import { useTranslation } from 'react-i18next';
+
+import { useCameraPermissions } from '../hooks/useCameraPermissions'; // New import
+import { useQrCodeScanner } from '../hooks/useQrCodeScanner'; // New import
 
 export default function ScannerScreen() {
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [scanned, setScanned] = useState(false);
-  const [loading, setLoading] = useState(false);
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
 
-  useEffect(() => {
-    const getCameraPermissions = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    };
-
-    getCameraPermissions();
-  }, []);
-
-  const handleBarCodeScanned = async ({ data }: { data: string }) => {
-    setScanned(true);
-    setLoading(true);
-    try {
-      const { adUrl, redemptionId } = await redeemQrCode(data);
-      navigation.navigate('AdPlayer', { adUrl, redemptionId });
-    } catch (error: any) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error de Canje',
-        text2: error.message,
-      });
-      setScanned(false); // Allow rescanning on error
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { hasPermission, requestPermissions } = useCameraPermissions(); // Use the new hook
+  const { scanned, loading, handleScan, resetScanner, setScanned } = useQrCodeScanner(); // Use the new hook
 
   if (hasPermission === null) {
-    return <View style={styles.permissionContainer}><Text>Solicitando permiso de cámara...</Text></View>;
+    return <View style={styles.permissionContainer}><Text>{t('Requesting camera permission...')}</Text></View>;
   }
   if (hasPermission === false) {
-    return <View style={styles.permissionContainer}><Text>Sin acceso a la cámara.</Text></View>;
+    return (
+      <View style={styles.permissionContainer}>
+        <Text>{t('No camera access.')}</Text>
+        <Button title={t('Grant Permissions')} onPress={requestPermissions} />
+      </View>
+    );
   }
 
   return (
@@ -57,7 +39,7 @@ export default function ScannerScreen() {
       {loading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#FFFFFF" />
-          <Text style={styles.loadingText}>Validando QR...</Text>
+          <Text style={styles.loadingText}>{t('Validating QR...')}</Text>
         </View>
       )}
     </View>

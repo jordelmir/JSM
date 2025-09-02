@@ -17,7 +17,4 @@ interface AdImpressionRepository : JpaRepository<AdImpression, Long> {
      * Cuenta el número de impresiones para un anunciante específico.
      */
     fun countByAdvertiserId(advertiserId: String): Long
-
-    // Override findAll to support Pageable
-    override fun findAll(pageable: Pageable): Page<AdImpression>
 }

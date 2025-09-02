@@ -18,18 +18,16 @@ data class ErrorResponse(
 )
 
 import io.micrometer.core.instrument.MeterRegistry // Import MeterRegistry
-import org.springframework.web.server.ServerWebExchange // Import ServerWebExchange
 
 @ControllerAdvice
 class GlobalExceptionHandler(
-    private val meterRegistry: MeterRegistry, // Inject MeterRegistry
-    private val exchange: ServerWebExchange // Inject ServerWebExchange
+    private val meterRegistry: MeterRegistry // Inject MeterRegistry
 ) {
 
     private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun handleValidationExceptions(ex: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
+    fun handleValidationExceptions(ex: MethodArgumentNotValidException, exchange: ServerWebExchange): ResponseEntity<ErrorResponse> {
         meterRegistry.counter("http_requests_errors_total", "status", "400", "exception", "MethodArgumentNotValidException").increment()
         val errors = ex.bindingResult.fieldErrors
             .map { it.defaultMessage }
@@ -50,7 +48,7 @@ class GlobalExceptionHandler(
     }
 
     @ExceptionHandler(IllegalArgumentException::class)
-    fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ErrorResponse> {
+    fun handleIllegalArgumentException(ex: IllegalArgumentException, exchange: ServerWebExchange): ResponseEntity<ErrorResponse> {
         meterRegistry.counter("http_requests_errors_total", "status", "400", "exception", "IllegalArgumentException").increment()
         val path = exchange.request.path.value()
         val method = exchange.request.method?.name() ?: "UNKNOWN"
@@ -67,7 +65,7 @@ class GlobalExceptionHandler(
     }
 
     @ExceptionHandler(Exception::class)
-    fun handleGenericException(ex: Exception): ResponseEntity<ErrorResponse> {
+    fun handleGenericException(ex: Exception, exchange: ServerWebExchange): ResponseEntity<ErrorResponse> {
         meterRegistry.counter("http_requests_errors_total", "status", "500", "exception", ex.javaClass.simpleName).increment()
         val path = exchange.request.path.value()
         val method = exchange.request.method?.name() ?: "UNKNOWN"

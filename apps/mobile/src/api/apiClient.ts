@@ -1,13 +1,14 @@
 import { useUserStore } from '../store/userStore'; // Import the Zustand store
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8080/api/v1'; // Fallback for development
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8080'; // Fallback for development
 
 /**
- * Realiza una petición fetch y maneja errores de forma centralizada.
- * @param endpoint El endpoint de la API al que llamar.
- * @param options Opciones de la petición fetch.
- * @returns La respuesta JSON.
- * @throws {Error} Si la respuesta de la red no es OK.
+ * Generic API fetch function for the mobile application.
+ * Handles base URL, headers, authentication (using accessToken from useUserStore), and basic error handling.
+ * @param {string} endpoint - The API endpoint to call (e.g., '/auth/otp/request'). This will be appended to `API_BASE_URL`.
+ * @param {RequestInit} [options] - Standard RequestInit options for the fetch call, such as method, body, etc.
+ * @returns {Promise<any>} A promise that resolves to the JSON response from the API. Returns `null` for 204 No Content responses.
+ * @throws {Error} If the network request fails or the API returns a non-OK status (e.g., 4xx, 5xx).
  */
 async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const headers = {
@@ -45,7 +46,9 @@ async function apiFetch(endpoint: string, options: RequestInit = {}) {
 }
 
 /**
- * Solicita un código OTP para un número de teléfono.
+ * Requests an OTP (One-Time Password) for a given phone number.
+ * @param {string} phone - The phone number to request OTP for.
+ * @returns {Promise<void>} A promise that resolves when the OTP request is successful.
  */
 export const requestOtp = (phone: string): Promise<void> => {
   return apiFetch('/auth/otp/request', {
@@ -55,7 +58,10 @@ export const requestOtp = (phone: string): Promise<void> => {
 };
 
 /**
- * Verifica un código OTP y devuelve un token de acceso.
+ * Verifies an OTP code and returns an access token.
+ * @param {string} phone - The phone number associated with the OTP.
+ * @param {string} code - The OTP code to verify.
+ * @returns {Promise<{ accessToken: string }>} A promise that resolves with the authentication access token.
  */
 export const verifyOtp = (phone: string, code: string): Promise<{ accessToken: string }> => {
   return apiFetch('/auth/otp/verify', {
@@ -65,7 +71,9 @@ export const verifyOtp = (phone: string, code: string): Promise<{ accessToken: s
 };
 
 /**
- * Envía un código QR para iniciar el proceso de redención.
+ * Sends a QR code to initiate the redemption process.
+ * @param {string} qrCode - The QR code string to redeem.
+ * @returns {Promise<{ adUrl: string; redemptionId: string }>} A promise that resolves with the ad URL and redemption ID.
  */
 export const redeemQrCode = (qrCode: string): Promise<{ adUrl: string; redemptionId: string }> => {
   return apiFetch('/redemptions', {
@@ -75,7 +83,9 @@ export const redeemQrCode = (qrCode: string): Promise<{ adUrl: string; redemptio
 };
 
 /**
- * Confirma que un anuncio ha sido visto.
+ * Confirms that an ad has been watched for a given redemption.
+ * @param {string} redemptionId - The ID of the redemption to confirm.
+ * @returns {Promise<void>} A promise that resolves when the ad watch confirmation is successful.
  */
 export const confirmAdWatched = (redemptionId: string): Promise<void> => {
   return apiFetch('/redemptions/confirm', {
@@ -85,6 +95,9 @@ export const confirmAdWatched = (redemptionId: string): Promise<void> => {
 };
 
 // --- Raffles --- //
+/**
+ * Represents a raffle entity.
+ */
 export type Raffle = {
   id: number;
   period: string;
@@ -95,6 +108,9 @@ export type Raffle = {
   winnerEntryId?: string;
 };
 
+/**
+ * Represents the winner of a raffle.
+ */
 export type RaffleWinner = {
   id: number;
   raffleId: number;
@@ -103,10 +119,19 @@ export type RaffleWinner = {
   prize: string;
 };
 
+/**
+ * Fetches a list of all raffles.
+ * @returns {Promise<Raffle[]>} A promise that resolves to an array of Raffle objects.
+ */
 export const getRaffles = (): Promise<Raffle[]> => {
   return apiFetch('/raffles');
 };
 
+/**
+ * Fetches the winner of a specific raffle.
+ * @param {number} raffleId - The ID of the raffle to get the winner for.
+ * @returns {Promise<RaffleWinner>} A promise that resolves to the RaffleWinner object.
+ */
 export const getRaffleWinner = (raffleId: number): Promise<RaffleWinner> => {
   return apiFetch(`/raffles/${raffleId}/winner`);
 };

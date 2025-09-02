@@ -12,11 +12,11 @@ import javax.crypto.spec.SecretKeySpec
 import com.gasolinerajsm.coupon.config.QrSecurityProperties // Import QrSecurityProperties
 
 @Service
-class QRCodeGenerator(
+class QrCodeService( // Renamed class
     private val qrSecurityProperties: QrSecurityProperties // Inject QrSecurityProperties
 ) {
 
-    fun generateQRCode(token: String): String {
+    fun generateSignedQrPayload(token: String): String { // Renamed method
         // Crear payload con timestamp y firma para seguridad
         val timestamp = System.currentTimeMillis()
         val payload = "$token:$timestamp"
@@ -35,7 +35,7 @@ class QRCodeGenerator(
         return outputStream.toByteArray()
     }
 
-    fun validateQRCode(qrCode: String): Boolean {
+    fun validateSignedQrPayload(qrCode: String): Boolean { // Renamed method
         return try {
             val parts = qrCode.split(":")
             if (parts.size != 3) return false

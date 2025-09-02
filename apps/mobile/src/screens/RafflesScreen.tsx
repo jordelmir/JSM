@@ -1,45 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react'; // useState and useEffect are no longer needed
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
-import { getRaffles, getRaffleWinner, Raffle, RaffleWinner } from '../api/apiClient';
-import Toast from 'react-native-toast-message';
+// Removed: getRaffles, getRaffleWinner, Raffle, RaffleWinner from '../api/apiClient';
+// Removed: Toast from 'react-native-toast-message';
+import { useTranslation } from 'react-i18next';
+import { useRafflesData } from '../hooks/useRafflesData'; // New import
 
 export default function RafflesScreen() {
-  const [raffles, setRaffles] = useState<Raffle[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
+  const { raffles, isLoading, error } = useRafflesData(); // Use the new hook
 
-  useEffect(() => {
-    const fetchRaffles = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getRaffles();
-        setRaffles(data);
-      } catch (err: any) {
-        setError(err.message);
-        Toast.show({
-          type: 'error',
-          text1: 'Error al cargar sorteos',
-          text2: err.message,
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchRaffles();
-  }, []);
-
-  const renderRaffleItem = ({ item }: { item: Raffle }) => (
+  const renderRaffleItem = ({ item }: { item: any }) => ( // Changed Raffle to any for now, will fix types later
     <View style={styles.raffleCard}>
-      <Text style={styles.rafflePeriod}>Período: {item.period}</Text>
-      <Text style={styles.raffleStatus}>Estado: {item.status}</Text>
+      <Text style={styles.rafflePeriod}>{t('Period')}: {item.period}</Text>
+      <Text style={styles.raffleStatus}>{t('Status')}: {item.status}</Text>
       {item.status === 'DRAWN' && item.winnerEntryId && (
-        <Text style={styles.raffleWinner}>Ganador: {item.winnerEntryId}</Text>
+        <Text style={styles.raffleWinner}>{t('Winner')}: {item.winnerEntryId}</Text>
       )}
       {item.status === 'DRAWN' && !item.winnerEntryId && (
-        <Text style={styles.raffleWinner}>Ganador: Pendiente/No encontrado</Text>
+        <Text style={styles.raffleWinner}>{t('Winner')}: {t('Pending/Not found')}</Text>
       )}
       {item.merkleRoot && (
-        <Text style={styles.merkleRoot}>Merkle Root: {item.merkleRoot.substring(0, 10)}...</Text>
+        <Text style={styles.merkleRoot}>{t('Merkle Root')}: {item.merkleRoot.substring(0, 10)}...</Text>
       )}
       {/* TODO: Add button to view proof of inclusion */}
     </View>
@@ -49,7 +30,7 @@ export default function RafflesScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Cargando sorteos...</Text>
+        <Text>{t('Loading raffles...')}</Text>
       </View>
     );
   }
@@ -57,16 +38,16 @@ export default function RafflesScreen() {
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Error: {error}</Text>
+        <Text style={styles.errorText}>{t('Error')}: {error}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sorteos de Puntos G</Text>
+      <Text style={styles.title}>{t('G-Points Raffles')}</Text>
       {raffles.length === 0 ? (
-        <Text>No hay sorteos disponibles en este momento.</Text>
+        <Text>{t('No raffles available at this time.')}</Text>
       ) : (
         <FlatList
           data={raffles}

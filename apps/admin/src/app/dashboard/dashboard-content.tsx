@@ -1,12 +1,12 @@
-
 "use client";
 
-import { useEffect, useState } from "react";
+// Removed: import { useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { DollarSign, Package, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@ui-components";
-import { getTodaySummary } from "@/lib/apiClient";
-import { toast } from 'react-toastify';
+// Removed: import { getTodaySummary } from "@/lib/apiClient";
+// Removed: import { toast } from 'react-toastify';
+import { useTodaySummary } from "@/lib/hooks/useTodaySummary"; // New import
 
 
 interface SummaryData {
@@ -16,25 +16,7 @@ interface SummaryData {
 }
 
 export default function DashboardContent() {
-  const [summary, setSummary] = useState<SummaryData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchSummary = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getTodaySummary();
-        setSummary(data);
-      } catch (err: any) {
-        setError(err.message);
-        toast.error(`Error loading dashboard summary: ${err.message}`);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchSummary();
-  }, []);
+  const { summary, isLoading, error } = useTodaySummary(); // Use the new hook
 
   if (isLoading) {
     return (

@@ -24,7 +24,7 @@ class LoggingFilter(private val tracer: Tracer) : GlobalFilter, Ordered {
         val traceId = span?.context()?.traceId()
         val spanId = span?.context()?.spanId()
 
-        val correlationId = UUID.randomUUID().toString()
+        val correlationId = exchange.request.headers.getFirst("X-Correlation-ID") ?: UUID.randomUUID().toString()
 
         // Add correlation ID to request headers
         val mutatedRequest = exchange.request.mutate()

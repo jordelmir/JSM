@@ -10,6 +10,44 @@ spring:
 
   cloud:
     gateway:
+      # ROUTE DEFINITIONS MOVED HERE FROM GatewayConfig.kt
+      routes:
+        - id: auth-service
+          uri: ${services.auth-service.url}
+          predicates:
+            - Path=/auth/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: '#{@ipKeyResolver}'
+
+        - id: coupon-service
+          uri: ${services.coupon-service.url}
+          predicates:
+            - Path=/coupons/**, /promotions/**
+
+        - id: station-service
+          uri: ${services.station-service.url}
+          predicates:
+            - Path=/stations/**
+
+        - id: ad-engine
+          uri: ${services.ad-engine.url}
+          predicates:
+            - Path=/ad/**, /campaigns/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: ad-engine-cb
+                fallbackUri: forward:/fallback/ad-engine
+
+        - id: raffle-service
+          uri: ${services.raffle-service.url}
+          predicates:
+            - Path=/raffles/**
+
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       globalcors:
@@ -102,6 +140,75 @@ services:
     url: ${RAFFLE_SERVICE_URL:http://raffle-service:8085}
 
 ---
+# Development profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8081
+          jwk-set-uri: http://localhost:8081/.well-known/jwks.json
+
+services:
+  auth-service:
+    url: http://localhost:8081
+  coupon-service:
+    url: http://localhost:8084
+  station-service:
+    url: http://localhost:8083
+  ad-engine:
+    url: http://localhost:8082
+  raffle-service:
+    url: http://localhost:8085
+
+logging:
+  level:
+    root: INFO
+    com.gasolinerajsm.apigateway: DEBUG
+
+---
+# Production profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  # Redis configuration for rate limiting
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 60000
+      client-type: lettuce
+      connect-timeout: 5s
+      ssl:
+        enabled: ${REDIS_SSL_ENABLED:false}
+      sentinel:
+        master: ${REDIS_SENTINEL_MASTER:}
+        nodes: ${REDIS_SENTINEL_NODES:}
+        password: ${REDIS_SENTINEL_PASSWORD:}
+      cluster:
+        nodes: ${REDIS_CLUSTER_NODES:}
+        max-redirects: 3
+        password: ${REDIS_CLUSTER_PASSWORD:}
+
+logging:
+  level:
+    root: WARN
+    com.gasolinerajsm.apigateway: INFO
+  file:
+    name: /var/log/api-gateway.log
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+
 # Development profile
 spring:
   config:

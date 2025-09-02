@@ -7,7 +7,6 @@ servers:
   - url: http://localhost:8081
     description: Local Development Server
 paths:
-  /auth/
   /auth/otp/request:
     post:
       summary: Request OTP
@@ -42,7 +41,42 @@ paths:
                 $ref: '#/components/schemas/TokenResponse'
         '400':
           description: Invalid OTP or request
+  /auth/refresh:
+    post:
+      summary: Refresh access token using a refresh token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Tokens refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid or expired refresh token
+  /auth/logout:
+    post:
+      summary: Invalidate current access token (logout)
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+        '401':
+          description: Unauthorized
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     OtpRequest:
       type: object
@@ -70,6 +104,14 @@ components:
         accessToken:
           type: string
           example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+        refreshToken:
+          type: string
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
         refreshToken:
           type: string
           example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'

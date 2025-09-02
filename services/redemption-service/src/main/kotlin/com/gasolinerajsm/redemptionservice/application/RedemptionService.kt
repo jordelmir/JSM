@@ -54,7 +54,9 @@ class RedemptionService(
 
         val redemption = Redemption.initiate(
             userId = command.userId,
-            qr = verifiedQr
+            qr = verifiedQr,
+            stationId = verifiedQr.s.toString(), // Convert Long to String
+            dispenserId = verifiedQr.d.toString() // Convert Long to String
         )
 
         // 2. Seleccionar anuncio usando el SDK
@@ -115,7 +117,7 @@ class RedemptionService(
         // Se omite por ahora. Si son necesarios, se debe actualizar el AdEngine.
         return RedemptionResult(
             redemptionId = redemption.id,
-            status = "PENDING_AD_VIEW",
+            status = RedemptionStatus.PENDING_AD_VIEW, // Use RedemptionStatus enum
             adUrl = adCreative.adUrl, // Use adUrl from AdCreativeResponse
             campaignId = adCreative.campaignId, // Use campaignId from AdCreativeResponse
             creativeId = adCreative.creativeId // Use creativeId from AdCreativeResponse

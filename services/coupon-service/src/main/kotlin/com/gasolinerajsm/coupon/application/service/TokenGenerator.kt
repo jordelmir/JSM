@@ -1,35 +1,41 @@
 package com.gasolinerajsm.coupon.application.service
 
+import com.gasolinerajsm.coupon.config.QrSecurityProperties
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.SignatureAlgorithm
+import io.jsonwebtoken.io.Decoders
+import io.jsonwebtoken.security.Keys
 import org.springframework.stereotype.Service
-import java.security.SecureRandom
-import java.util.*
+import java.security.Key
+import java.util.Date
 
+/**
+ * Generates and validates signed JWTs for QR Codes to ensure their authenticity and integrity.
+ */
 @Service
-class TokenGenerator {
+class TokenGenerator(private val securityProperties: QrSecurityProperties) {
 
-    private val secureRandom = SecureRandom()
-    private val characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-    fun generateUniqueToken(): String {
-        // Generar token único de 12 caracteres
-        val token = StringBuilder()
-        repeat(12) {
-            token.append(characters[secureRandom.nextInt(characters.length)])
-        }
-
-        // Agregar timestamp para garantizar unicidad
-        val timestamp = System.currentTimeMillis().toString(36).uppercase()
-
-        return "${token}-${timestamp}"
+    private val signingKey: Key by lazy {
+        val keyBytes = Decoders.BASE64.decode(securityProperties.secret)
+        Keys.hmacShaKeyFor(keyBytes)
     }
 
-    fun generateRaffleToken(): String {
-        // Token especial para sorteos con formato diferente
-        val uuid = UUID.randomUUID().toString().replace("-", "").uppercase()
-        return "RAFFLE-${uuid.take(16)}"
-    }
+    /**
+     * Creates a signed JWS token containing coupon information.
+     *
+     * @param couponId The unique identifier of the coupon.
+     * @return A signed JWT string.
+     */
+    fun generateSignedCouponToken(couponId: String): String {
+        val now = System.currentTimeMillis()
+        // Expiration is handled by the JWT itself, so no need for separate expiration logic here.
+        val expirationTime = now + securityProperties.expirationMinutes * 60 * 1000
 
-    fun validateTokenFormat(token: String): Boolean {
-        return token.matches(Regex("^[A-Z0-9]{12}-[A-Z0-9]+$"))
+        return Jwts.builder()
+            .claim("couponId", couponId)
+            .setIssuedAt(Date(now))
+            .setExpiration(Date(expirationTime))
+            .signWith(signingKey, SignatureAlgorithm.HS256)
+            .compact()
     }
 }

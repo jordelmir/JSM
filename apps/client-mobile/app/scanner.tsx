@@ -6,23 +6,30 @@ import {
   TouchableOpacity,
   Alert,
   Dimensions,
-  ActivityIndicator, // Import ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useCouponStore } from './store/couponStore';
+import { scanQRCode as apiScanQRCode } from '../src/api/coupon';
 import { useUserStore } from './store/userStore';
+import { useTranslation } from 'react-i18next'; // New import for translation
 
 const { width, height } = Dimensions.get('window');
 
+/**
+ * ScannerScreen component for scanning QR codes.
+ * It handles camera permissions, displays a camera view with an overlay,
+ * processes scanned QR codes, and navigates to coupon activation or shows alerts.
+ */
 export default function ScannerScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { scanQRCode } = useCouponStore();
+  const apiScanQRCodeFunction = apiScanQRCode;
   const { user } = useUserStore();
+  const { t } = useTranslation(); // Initialize useTranslation
 
   useEffect(() => {
     const getCameraPermissions = async () => {
@@ -47,20 +54,21 @@ export default function ScannerScreen() {
 
     try {
       if (!user?.id) {
-        throw new Error('Usuario no autenticado');
+        Alert.alert(t('User not authenticated'), t('Please log in to scan QR codes.')); // Translated
+        return;
       }
 
       // Basic client-side validation for QR code data format
       // Assuming QR code data is a string that should not be empty
       if (!data || typeof data !== 'string' || data.trim().length === 0) {
-        throw new Error('Formato de código QR inválido.');
+        throw new Error(t('Invalid QR code format.')); // Translated
       }
 
-      const result = await scanQRCode(data, user.id);
+      const result = await apiScanQRCodeFunction(data, user.id);
 
-      Alert.alert('¡QR Escaneado!', result.message, [
+      Alert.alert(t('QR Scanned!'), result.message, [
         {
-          text: 'Activar Cupón',
+          text: t('Activate Coupon'), // Translated
           onPress: () => {
             router.push({
               pathname: '/coupon-activation',
@@ -71,7 +79,7 @@ export default function ScannerScreen() {
           style: 'default',
         },
         {
-          text: 'Ver Después',
+          text: t('View Later'), // Translated
           onPress: () => {
             router.back();
             setScanned(false); // Reset scanned state after navigation
@@ -81,9 +89,9 @@ export default function ScannerScreen() {
       ]);
     } catch (error) {
       Alert.alert(
-        'Error',
-        error instanceof Error ? error.message : 'Error al escanear QR',
-        [{ text: 'OK', onPress: () => setScanned(false) }]
+        t('Error'), // Translated
+        error instanceof Error ? error.message : t('Error scanning QR'), // Translated
+        [{ text: t('OK'), onPress: () => setScanned(false) }] // Translated
       );
     } finally {
       setIsLoading(false);
@@ -98,7 +106,7 @@ export default function ScannerScreen() {
   if (hasPermission === null) {
     return (
       <View style={styles.container}>
-        <Text style={styles.message}>Solicitando permisos de cámara...</Text>
+        <Text style={styles.message}>{t('Requesting camera permissions...')}</Text> {/* Translated */}
       </View>
     );
   }
@@ -108,8 +116,8 @@ export default function ScannerScreen() {
       <View style={styles.container}>
         <Ionicons name="camera-outline" size={64} color="#8E8E93" />
         <Text style={styles.message}>
-          Necesitamos acceso a tu cámara para escanear códigos QR.
-          Por favor, permite el acceso en la configuración de tu dispositivo.
+          {t('We need access to your camera to scan QR codes.')} {/* Translated */}
+          {t('Please allow access in your device settings.')} {/* Translated */}
         </Text>
         <TouchableOpacity
           style={styles.permissionButton}
@@ -118,7 +126,7 @@ export default function ScannerScreen() {
             setHasPermission(status === 'granted');
           }}
         >
-          <Text style={styles.permissionButtonText}>Reintentar Permisos</Text>
+          <Text style={styles.permissionButtonText}>{t('Retry Permissions')}</Text> {/* Translated */}
         </TouchableOpacity>
       </View>
     );
@@ -133,7 +141,7 @@ export default function ScannerScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Escanear QR</Text>
+        <Text style={styles.headerTitle}>{t('Scan QR')}</Text> {/* Translated */}
         <View style={styles.placeholder} />
       </View>
 
@@ -157,12 +165,12 @@ export default function ScannerScreen() {
           {/* Instructions */}
           <View style={styles.instructionsContainer}>
             <Text style={styles.instructionsText}>
-              Apunta la cámara al código QR del dispensador
+              {t('Point the camera at the dispenser QR code')} {/* Translated */}
             </Text>
             {isLoading && (
               <View style={styles.loadingOverlay}>
                 <ActivityIndicator size="large" color="#FFFFFF" />
-                <Text style={styles.loadingText}>Procesando...</Text>
+                <Text style={styles.loadingText}>{t('Processing...')}</Text> {/* Translated */}
               </View>
             )}
           </View>
@@ -171,7 +179,7 @@ export default function ScannerScreen() {
           {scanned && (
             <TouchableOpacity style={styles.resetButton} onPress={resetScanner}>
               <Ionicons name="refresh" size={24} color="#FFFFFF" />
-              <Text style={styles.resetButtonText}>Escanear Otro</Text>
+              <Text style={styles.resetButtonText}>{t('Scan Another')}</Text> {/* Translated */}
             </TouchableOpacity>
           )}
         </View>
@@ -182,13 +190,13 @@ export default function ScannerScreen() {
         <View style={styles.instructionItem}>
           <Ionicons name="qr-code-outline" size={24} color="#007AFF" />
           <Text style={styles.instructionText}>
-            Solicita al empleado que genere tu código QR
+            {t('Ask the employee to generate your QR code')} {/* Translated */}
           </Text>
         </View>
         <View style={styles.instructionItem}>
           <Ionicons name="ticket-outline" size={24} color="#FF6B35" />
           <Text style={styles.instructionText}>
-            Cada ₡5,000 = 1 ticket para sorteos
+            {t('Every ₡5,000 = 1 ticket for raffles')} {/* Translated */}
           </Text>
         </View>
       </View>

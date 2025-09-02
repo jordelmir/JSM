@@ -7,34 +7,42 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import java.time.LocalDateTime
+import com.gasolinerajsm.shared.api.ErrorResponse // New import
+import io.micrometer.core.instrument.MeterRegistry // New import
+import jakarta.servlet.http.HttpServletRequest // New import
 
 @ControllerAdvice
-class RedemptionExceptionHandler {
+class RedemptionExceptionHandler(private val meterRegistry: MeterRegistry) { // Inject MeterRegistry
 
     private val logger = LoggerFactory.getLogger(RedemptionExceptionHandler::class.java)
 
     @ExceptionHandler(InvalidQrException::class)
-    fun handleInvalidQrException(ex: InvalidQrException): ResponseEntity<Map<String, Any>> {
-        logger.warn("Invalid QR request: {}", ex.message)
-        val body = mapOf(
-            "timestamp" to LocalDateTime.now(),
-            "status" to HttpStatus.BAD_REQUEST.value(),
-            "error" to "Bad Request",
-            "message" to ex.message
+    fun handleInvalidQrException(ex: InvalidQrException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
+        meterRegistry.counter("http_requests_errors_total", "status", "400", "exception", "InvalidQrException").increment()
+        logger.warn("Invalid QR request: {} for path {} {}", ex.message, request.method, request.requestURI)
+        val errorResponse = ErrorResponse(
+            timestamp = LocalDateTime.now(),
+            status = HttpStatus.BAD_REQUEST.value(),
+            error = "Bad Request",
+            message = ex.message ?: "Invalid QR code provided",
+            path = request.requestURI,
+            method = request.method
         )
-        return ResponseEntity(body, HttpStatus.BAD_REQUEST)
+        return ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST)
     }
 
-    // You might want to add a generic exception handler here as well
     @ExceptionHandler(Exception::class)
-    fun handleGenericException(ex: Exception): ResponseEntity<Map<String, Any>> {
-        logger.error("An unexpected error occurred in Redemption Service: {}", ex.message, ex)
-        val body = mapOf(
-            "timestamp" to LocalDateTime.now(),
-            "status" to HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "error" to "Internal Server Error",
-            "message" to "An unexpected error occurred. Please try again later."
+    fun handleGenericException(ex: Exception, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
+        meterRegistry.counter("http_requests_errors_total", "status", "500", "exception", ex.javaClass.simpleName).increment()
+        logger.error("An unexpected error occurred in Redemption Service: {} for path {} {}", ex.message, request.method, request.requestURI, ex)
+        val errorResponse = ErrorResponse(
+            timestamp = LocalDateTime.now(),
+            status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            error = "Internal Server Error",
+            message = "An unexpected error occurred. Please try again later.",
+            path = request.requestURI,
+            method = request.method
         )
-        return ResponseEntity(body, HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }

@@ -1,41 +1,55 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'; // Added ActivityIndicator
 import { useAdSequenceStore } from '../lib/stores/useAdSequenceStore';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-
-// Datos simulados para los sorteos
-const activeRaffles = [
-  { id: '1', title: 'Tarjeta de Regalo de $50 para Amazon', endsIn: '1d 5h' },
-  { id: '2', title: 'Audífonos Inalámbricos Premium', endsIn: '3d 12h' },
-  { id: '3', title: 'Cena para Dos en Restaurante Exclusivo', endsIn: '5d 2h' },
-];
+import { useRaffles } from '../../lib/hooks/useRaffles'; // New import
 
 export default function RafflesScreen() {
-  const { totalTickets } = useAdSequenceStore(); // ¡Leemos del cerebro central!
+  const { totalTickets } = useAdSequenceStore();
+  const { t } = useTranslation();
+  const { raffles, isLoading, error } = useRaffles(); // Use the new hook
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>{t('Loading raffles...')}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{t('Error loading raffles:')} {error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.walletContainer}>
-        <Text style={styles.walletLabel}>Mis Boletos</Text>
+        <Text style={styles.walletLabel}>{t("My Tickets")}</Text>
         <Text style={styles.walletTotal}>{totalTickets}</Text>
       </View>
       
-      <Text style={styles.sectionTitle}>Sorteos Activos</Text>
+      <Text style={styles.sectionTitle}>{t("Active Raffles")}</Text>
       
       <FlatList
-        data={activeRaffles}
+        data={raffles} // Use data from the hook
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.raffleCard}>
-            <Text style={styles.raffleTitle}>{item.title}</Text>
-            <Text style={styles.raffleCountdown}>Termina en: {item.endsIn}</Text>
+            <Text style={styles.raffleTitle}>{t(item.title)}</Text>
+            <Text style={styles.raffleCountdown}>{t("Ends in:")} {item.endsIn}</Text>
             <TouchableOpacity style={styles.participateButton}>
-              <Text style={styles.buttonText}>Participar</Text>
+              <Text style={styles.buttonText}>{t("Participate")}</Text>
             </TouchableOpacity>
           </View>
         )}
         ListEmptyComponent={
-          <Text style={styles.emptyMessage}>No hay sorteos activos en este momento.</Text>
+          <Text style={styles.emptyMessage}>{t("No active raffles at the moment.")}</Text>
         }
       />
     </View>
@@ -77,7 +91,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   raffleCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'white',
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
@@ -115,5 +129,29 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     color: '#666',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#ffebee',
+    borderRadius: 10,
+    margin: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#d32f2f',
+    textAlign: 'center',
   },
 });

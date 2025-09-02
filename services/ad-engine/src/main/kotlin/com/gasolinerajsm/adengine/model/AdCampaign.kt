@@ -11,7 +11,7 @@ data class AdCampaign(
     val advertiserId: String,
     val name: String,
     val adUrl: String,
-    val stationId: Long?,
+    val stationId: String?, // Changed to String?
     val startDate: Instant,
     val endDate: Instant,
     val isActive: Boolean

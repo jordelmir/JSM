@@ -7,5 +7,4 @@ import java.util.UUID
 
 @Repository
 interface OutboxRepository : JpaRepository<Outbox, UUID> {
-    // JpaRepository provides save, findById, etc.
 }

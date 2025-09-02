@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Button } from '../components/Button'; // Import the custom Button component
 import { useUserStore } from '../store/userStore';
+import { useTranslation } from 'react-i18next'; // New import for translation
 
 interface HomeScreenProps {
   navigation: any;
@@ -9,6 +10,7 @@ interface HomeScreenProps {
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const setTokens = useUserStore((state) => state.setTokens);
+  const { t } = useTranslation(); // Initialize useTranslation
 
   const handleLogout = () => {
     setTokens(null, null);
@@ -16,17 +18,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>¡Bienvenido a Gasolinera JSM!</Text>
-      <Text style={styles.subtitle}>Has iniciado sesión.</Text>
+      <Text style={styles.title}>{t('Welcome to Gasolinera JSM!')}</Text> {/* Translated */}
+      <Text style={styles.subtitle}>{t('You are logged in.')}</Text> {/* Translated */}
       
       <View style={styles.buttonContainer}>
-        <Button title="Escanear QR" onPress={() => navigation.navigate('Scanner')} />
+        <Button title={t('Scan QR')} onPress={() => navigation.navigate('Scanner')} /> {/* Translated */}
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Ver Sorteos" onPress={() => navigation.navigate('Raffles')} />
+        <Button title={t('View Raffles')} onPress={() => navigation.navigate('Raffles')} /> {/* Translated */}
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Cerrar Sesión" onPress={handleLogout} />
+        <Button title={t('Logout')} onPress={handleLogout} /> {/* Translated */}
       </View>
     </View>
   );

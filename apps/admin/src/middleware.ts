@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { PROTECTED_ROUTES } from '@/lib/protectedRoutes'; // Re-use your protected routes config
+
+// Define your protected routes here (re-introduced locally)
+const PROTECTED_ROUTES = [
+  '/dashboard',
+  '/dashboard/stations',
+  '/dashboard/raffles',
+  // Add other protected routes as needed
+];
 
 export function middleware(request: NextRequest) {
   const accessToken = request.cookies.get('accessToken')?.value; // Assuming token is in a cookie

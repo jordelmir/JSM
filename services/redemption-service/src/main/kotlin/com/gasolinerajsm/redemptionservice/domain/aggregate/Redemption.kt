@@ -4,6 +4,7 @@ import com.gasolinerajsm.redemptionservice.service.QrSecurityService.QrPayload
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import java.time.Instant // New import
 import java.util.UUID
 
 @Entity
@@ -15,18 +16,18 @@ data class Redemption(
     val stationId: String,
     val dispenserId: String,
     val nonce: String,
-    val timestamp: Long,
-    val expiration: Long
+    val timestamp: Instant, // Changed to Instant
+    val expiration: Instant // Changed to Instant
 ) {
     companion object {
-        fun initiate(userId: String, qr: QrPayload): Redemption {
+        fun initiate(userId: String, qr: QrPayload, stationId: String, dispenserId: String): Redemption { // Added stationId and dispenserId
             return Redemption(
                 userId = userId,
-                stationId = qr.s,
-                dispenserId = qr.d,
+                stationId = stationId, // Use passed stationId
+                dispenserId = dispenserId, // Use passed dispenserId
                 nonce = qr.n,
-                timestamp = qr.t,
-                expiration = qr.exp
+                timestamp = Instant.ofEpochMilli(qr.t),
+                expiration = Instant.ofEpochMilli(qr.exp)
             )
         }
     }

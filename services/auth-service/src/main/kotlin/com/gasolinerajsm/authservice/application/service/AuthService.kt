@@ -2,25 +2,22 @@ package com.gasolinerajsm.authservice.application.service
 
 import com.gasolinerajsm.authservice.config.OtpProperties
 import com.gasolinerajsm.authservice.dto.TokenResponse
+import com.gasolinerajsm.authservice.application.port.out.OtpSender // New import
+import com.gasolinerajsm.authservice.util.PhoneNumberValidator
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.stereotype.Service
 import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 
-/**
- * Service responsible for authentication operations including OTP generation,
- * verification, and token issuance.
- *
- * This service follows hexagonal architecture principles by depending on
- * abstractions (ports) rather than concrete implementations.
- */
 @Service
 class AuthService(
     private val redisTemplate: StringRedisTemplate,
     private val jwtService: JwtService,
     private val userService: UserService,
-    private val otpProperties: OtpProperties
+    private val otpProperties: OtpProperties,
+    private val otpSender: OtpSender // New dependency
 ) {
 
     private val logger = LoggerFactory.getLogger(AuthService::class.java)
@@ -31,18 +28,10 @@ class AuthService(
         private const val OTP_LENGTH = 6
         private const val MIN_OTP_VALUE = 100000
         private const val MAX_OTP_VALUE = 999999
-        private val PHONE_NUMBER_REGEX = "^\\+[1-9]\\d{1,14}$".toRegex()
     }
 
-    /**
-     * Generates and stores an OTP for the given phone number.
-     * In production, this should trigger SMS sending.
-     *
-     * @param phone The phone number to send OTP to
-     * @throws IllegalArgumentException if phone number is invalid
-     */
     fun sendOtp(phone: String) {
-        require(phone.isNotBlank() && phone.matches(PHONE_NUMBER_REGEX)) {
+        require(PhoneNumberValidator.isValidE164(phone)) {
             "Invalid phone number format. It must be in E.164 format (e.g., +1234567890)."
         }
 
@@ -53,18 +42,9 @@ class AuthService(
 
         logger.info("Generated OTP for phone number ending in {}", phone.takeLast(4))
 
-        // TODO: Replace with actual SMS service integration
-        // otpSender.send(phone, "Your Gasolinera JSM code is: $otp")
+        otpSender.send(phone, otp) // Use the injected OtpSender
     }
 
-    /**
-     * Verifies the provided OTP and issues JWT tokens if valid.
-     *
-     * @param phone The phone number associated with the OTP
-     * @param code The OTP code to verify
-     * @return TokenResponse containing access and refresh tokens
-     * @throws IllegalArgumentException if OTP is invalid or expired
-     */
     fun verifyOtpAndIssueTokens(phone: String, code: String): TokenResponse {
         val attemptsKey = "$OTP_ATTEMPTS_PREFIX$phone"
         val attempts = redisTemplate.opsForValue().get(attemptsKey)?.toInt() ?: 0
@@ -88,14 +68,11 @@ class AuthService(
 
         logger.info("Successfully verified OTP for phone number ending in {}", phone.takeLast(4))
 
-        // Find or create user
         val user = userService.findOrCreateUser(phone)
 
-        // Generate tokens
         val accessToken = jwtService.generateAccessToken(user.id.toString())
         val refreshToken = jwtService.generateRefreshToken(user.id.toString())
 
-        // Clean up OTP and attempts counter
         redisTemplate.delete(redisKey)
         redisTemplate.delete(attemptsKey)
 
@@ -104,11 +81,25 @@ class AuthService(
         return TokenResponse(accessToken, refreshToken)
     }
 
-    /**
-     * Generates a cryptographically secure OTP.
-     *
-     * @return A 6-digit OTP as string
-     */
+    fun refreshAccessToken(refreshToken: String): TokenResponse {
+        if (!jwtService.isRefreshTokenValid(refreshToken)) {
+            throw BadCredentialsException("Invalid or expired refresh token")
+        }
+
+        // Invalidate the used refresh token
+        jwtService.blacklistToken(refreshToken)
+
+        val userId = jwtService.extractSubjectFromRefreshToken(refreshToken)
+
+        // Issue a new pair of tokens
+        val newAccessToken = jwtService.generateAccessToken(userId)
+        val newRefreshToken = jwtService.generateRefreshToken(userId)
+
+        logger.info("Refreshed tokens for userId: {}", userId)
+
+        return TokenResponse(newAccessToken, newRefreshToken)
+    }
+
     private fun generateSecureOtp(): String {
         val secureRandom = SecureRandom()
         val otp = secureRandom.nextInt(MIN_OTP_VALUE, MAX_OTP_VALUE + 1)

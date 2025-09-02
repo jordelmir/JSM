@@ -1,28 +1,25 @@
+import React from 'react';
+import { useDarkMode } from '../hooks/useDarkMode';
+import { Moon, Sun } from 'lucide-react';
 
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-
-const DarkModeToggle: React.FC = () => {
-  const { t } = useTranslation();
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-  };
+/**
+ * A toggle component for switching between light and dark modes.
+ * It uses the useDarkMode hook to manage and persist the theme state.
+ */
+export const DarkModeToggle: React.FC = () => {
+  const [isDarkMode, toggleDarkMode] = useDarkMode();
 
   return (
-    <button onClick={toggleDarkMode} aria-pressed={isDarkMode} className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 shadow-md">
-      {isDarkMode ? t('Light Mode') : t('Dark Mode')}
+    <button
+      onClick={toggleDarkMode}
+      className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      aria-label={isDarkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
+    >
+      {isDarkMode ? (
+        <Sun className="h-6 w-6" />
+      ) : (
+        <Moon className="h-6 w-6" />
+      )}
     </button>
   );
 };
-
-export default DarkModeToggle;

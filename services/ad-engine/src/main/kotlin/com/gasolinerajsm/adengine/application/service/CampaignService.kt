@@ -8,6 +8,7 @@ import com.gasolinerajsm.adengine.repository.AdCampaignRepository
 import com.gasolinerajsm.adengine.repository.AdImpressionRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import jakarta.persistence.EntityNotFoundException
 
 data class CampaignPerformanceSummaryDto(
     val totalImpressions: Long,
@@ -41,6 +42,28 @@ class CampaignService(
         )
         val savedCampaign = adCampaignRepository.save(campaign)
         return savedCampaign.toDto()
+    }
+
+    @Transactional
+    @CacheEvict(value = ["advertiserCampaigns", "campaignPerformanceSummary"], key = "#advertiserId", allEntries = false)
+    fun updateCampaign(campaignId: Long, advertiserId: String, dto: CreateCampaignDto): CampaignDto {
+        val campaign = adCampaignRepository.findById(campaignId)
+            .orElseThrow { EntityNotFoundException("Campaign with id $campaignId not found") }
+
+        if (campaign.advertiserId != advertiserId) {
+            // Or throw a more specific AccessDeniedException
+            throw SecurityException("User does not have permission to update this campaign")
+        }
+
+        // Update properties
+        campaign.name = dto.name
+        campaign.startDate = dto.startDate
+        campaign.endDate = dto.endDate
+        campaign.budget = dto.budget
+        campaign.adUrl = dto.adUrl
+
+        val updatedCampaign = adCampaignRepository.save(campaign)
+        return updatedCampaign.toDto()
     }
 
     @Cacheable(value = ["campaignPerformanceSummary"], key = "#advertiserId")

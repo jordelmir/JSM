@@ -1,10 +1,13 @@
 package com.gasolinerajsm.redemptionservice.service
 
-import com.fasterxml.jackson.core.JsonParseException // Import specific exception
+import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.exc.MismatchedInputException // Import specific exception
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
+import com.gasolinerajsm.redemptionservice.config.QrSecurityProperties
 import com.gasolinerajsm.redemptionservice.exception.InvalidQrException
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
 import java.security.KeyFactory
 import java.security.PublicKey
@@ -12,20 +15,15 @@ import java.security.Signature
 import java.security.spec.X509EncodedKeySpec
 import java.time.Instant
 import java.util.Base64
-import org.slf4j.LoggerFactory
+import java.util.concurrent.TimeUnit
 
 data class QrPayload(
     val s: Long, // stationId
     val d: Long, // dispenserId
     val n: String, // nonce
-    val t: Long,   // timestamp
-    val exp: Long  // expiration
+    val t: Instant,   // timestamp - Changed to Instant
+    val exp: Instant  // expiration - Changed to Instant
 )
-
-import org.springframework.data.redis.core.StringRedisTemplate // Import StringRedisTemplate
-import java.util.concurrent.TimeUnit // Import TimeUnit
-
-import com.gasolinerajsm.redemptionservice.config.QrSecurityProperties // Import new properties
 
 @Service
 class QrSecurityService(
@@ -104,7 +102,17 @@ class QrSecurityService(
 
         val payloadJson = String(decodedPayloadBytes, Charsets.UTF_8)
         val qrPayload = try {
-            objectMapper.readValue(payloadJson, QrPayload::class.java)
+            // Temporarily parse as a map to convert Long timestamps to Instant
+            val rawPayloadMap = objectMapper.readValue(payloadJson, Map::class.java)
+            val tInstant = Instant.ofEpochMilli((rawPayloadMap["t"] as Number).toLong())
+            val expInstant = Instant.ofEpochMilli((rawPayloadMap["exp"] as Number).toLong())
+            QrPayload(
+                s = (rawPayloadMap["s"] as Number).toLong(),
+                d = (rawPayloadMap["d"] as Number).toLong(),
+                n = rawPayloadMap["n"] as String,
+                t = tInstant,
+                exp = expInstant
+            )
         } catch (e: JsonParseException) { // Catch specific JSON parsing error
             logger.warn("Invalid QR payload JSON format: {}", payloadJson, e)
             throw InvalidQrException("Invalid QR payload JSON format: ${e.message}")
@@ -124,12 +132,12 @@ class QrSecurityService(
         }
 
         // Store nonce with expiration matching token expiration
-        val nonceExpirationSeconds = qrPayload.exp - Instant.now().epochSecond
+        val nonceExpirationSeconds = qrPayload.exp.epochSecond - Instant.now().epochSecond
         if (nonceExpirationSeconds > 0) {
             redisTemplate.opsForValue().set(nonceKey, "1", nonceExpirationSeconds, TimeUnit.SECONDS)
         }
 
-        if (qrPayload.exp < Instant.now().epochSecond - qrSecurityProperties.clockSkewToleranceSeconds) {
+        if (qrPayload.exp.isBefore(Instant.now().minusSeconds(qrSecurityProperties.clockSkewToleranceSeconds))) {
             logger.warn("QR token has expired: {}", qrPayload.exp)
             throw InvalidQrException("QR token has expired")
         }

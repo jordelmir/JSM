@@ -14,7 +14,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
  */
 @Configuration
 @EnableWebFluxSecurity
-class SecurityConfig {
+class SecurityConfig(private val corsProperties: CorsProperties) { // Inject CorsProperties
 
     @Bean
     fun securityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
@@ -47,12 +47,11 @@ class SecurityConfig {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        // TODO: Configure trusted origins for CORS. Avoid "*" in production for security.
-        configuration.allowedOriginPatterns = listOf("YOUR_TRUSTED_ORIGIN_HERE")
-        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
-        configuration.allowedHeaders = listOf("*")
-        configuration.allowCredentials = true
-        configuration.maxAge = 3600L
+        configuration.allowedOriginPatterns = corsProperties.allowedOrigins // Use configurable origins
+        configuration.allowedMethods = corsProperties.allowedMethods
+        configuration.allowedHeaders = corsProperties.allowedHeaders
+        configuration.allowCredentials = corsProperties.allowCredentials
+        configuration.maxAge = corsProperties.maxAge // Use configurable maxAge
 
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)

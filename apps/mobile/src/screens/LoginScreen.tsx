@@ -5,6 +5,7 @@ import { Button } from '../components/Button'; // Import the custom Button compo
 import { requestOtp, verifyOtp } from '../api/apiClient';
 import { useUserStore } from '../store/userStore';
 import Toast from 'react-native-toast-message';
+import { useTranslation } from 'react-i18next'; // New import for translation
 
 // La navegación ahora se manejaría en un navigator raíz que observa el estado del userStore
 const LoginScreen = () => {
@@ -13,13 +14,14 @@ const LoginScreen = () => {
   const [otpRequested, setOtpRequested] = useState(false);
   const [loading, setLoading] = useState(false);
   const setTokens = useUserStore((state) => state.setTokens);
+  const { t } = useTranslation(); // Initialize useTranslation
 
   const handleRequestOtp = async () => {
     if (!phone) {
       Toast.show({
         type: 'error',
-        text1: 'Entrada Inválida',
-        text2: 'Por favor, introduce un número de teléfono.',
+        text1: t('Invalid Input'), // Translated
+        text2: t('Please enter a phone number.'), // Translated
       });
       return;
     }
@@ -29,13 +31,13 @@ const LoginScreen = () => {
       setOtpRequested(true);
       Toast.show({
         type: 'success',
-        text1: 'OTP Enviado',
-        text2: `Se ha enviado un código a ${phone}.`,
+        text1: t('OTP Sent'), // Translated
+        text2: t(`A code has been sent to ${phone}.`),
       });
     } catch (error: any) {
       Toast.show({
         type: 'error',
-        text1: 'Error',
+        text1: t('Error'), // Translated
         text2: error.message,
       });
     } finally {
@@ -47,8 +49,8 @@ const LoginScreen = () => {
     if (!otp) {
       Toast.show({
         type: 'error',
-        text1: 'Entrada Inválida',
-        text2: 'Por favor, introduce el código OTP.',
+        text1: t('Invalid Input'), // Translated
+        text2: t('Please enter the OTP code.'), // Translated
       });
       return;
     }
@@ -58,13 +60,13 @@ const LoginScreen = () => {
       setTokens(accessToken, null); // Actualiza el estado global, lo que debería disparar la navegación
       Toast.show({
         type: 'success',
-        text1: 'Éxito',
-        text2: 'Sesión iniciada correctamente!',
+        text1: t('Success'), // Translated
+        text2: t('Session started successfully!'), // Translated
       });
     } catch (error: any) {
       Toast.show({
         type: 'error',
-        text1: 'Error de Verificación',
+        text1: t('Verification Error'), // Translated
         text2: error.message,
       });
     } finally {
@@ -74,32 +76,32 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bienvenido</Text>
-      <Text style={styles.subtitle}>Ingresa tu teléfono para continuar</Text>
+      <Text style={styles.title}>{t('Welcome')}</Text> {/* Translated */}
+      <Text style={styles.subtitle}>{t('Enter your phone to continue')}</Text> {/* Translated */}
       
       {!otpRequested ? (
         <>
           <TextInput
             style={styles.input}
-            placeholder="Número de Teléfono"
+            placeholder={t('Phone Number')} {/* Translated */}
             keyboardType="phone-pad"
             value={phone}
             onChangeText={setPhone}
             editable={!loading}
           />
-          {loading ? <Spinner /> : <Button title="Enviar Código" onPress={handleRequestOtp} loading={loading} />}
+          {loading ? <Spinner /> : <Button title={t('Send Code')} onPress={handleRequestOtp} loading={loading} />} {/* Translated */}
         </>
       ) : (
         <>
           <TextInput
             style={styles.input}
-            placeholder="Código de 6 dígitos"
+            placeholder={t('6-digit Code')} {/* Translated */}
             keyboardType="number-pad"
             value={otp}
             onChangeText={setOtp}
             editable={!loading}
           />
-          {loading ? <Spinner /> : <Button title="Verificar e Iniciar Sesión" onPress={handleVerifyOtp} loading={loading} />}
+          {loading ? <Spinner /> : <Button title={t('Verify and Login')} onPress={handleVerifyOtp} loading={loading} />} {/* Translated */}
         </>
       )}
     </View>

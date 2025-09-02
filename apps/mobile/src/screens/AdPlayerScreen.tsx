@@ -1,72 +1,30 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react'; // useState, useEffect, useRef are no longer needed
 import { View, Text, StyleSheet, Button, ActivityIndicator } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'; // Still needed for navigation and route
 import { WebView } from 'react-native-webview';
-import { confirmAdWatched } from '../api/apiClient';
-import Toast from 'react-native-toast-message';
+// Removed: confirmAdWatched
+import Toast from 'react-native-toast-message'; // Still needed for Toast.show
+import { useTranslation } from 'react-i18next';
 
-const AD_DURATION_SECONDS = 15;
+import { useAdPlayback } from '../hooks/useAdPlayback'; // New import
 
-type AdPlayerScreenRouteProp = RouteProp<{ params: { adUrl: string; redemptionId: string } }, 'params'>;
+type AdPlayerScreenRouteProp = RouteProp<{ params: { adUrl: string; redemptionId: string; adDurationSeconds?: number } }, 'params'>;
 
 export default function AdPlayerScreen() {
-  const navigation = useNavigation<any>();
-  const route = useRoute<AdPlayerScreenRouteProp>();
-  const { adUrl, redemptionId } = route.params;
+  const navigation = useNavigation<any>(); // Still needed for navigation
+  const route = useRoute<AdPlayerScreenRouteProp>(); // Still needed for route
+  const { adUrl } = route.params; // adUrl is still needed here
 
-  const [timeLeft, setTimeLeft] = useState(AD_DURATION_SECONDS);
-  const [isConfirming, setIsConfirming] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { t } = useTranslation();
 
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setTimeLeft((prevTime) => prevTime - 1);
-    }, 1000);
+  const { timeLeft, isConfirming, handleAdFinished, adDurationSeconds } = useAdPlayback(); // Use the new hook
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      handleAdFinished();
-    }
-  }, [timeLeft]);
-
-  const handleAdFinished = async () => {
-    setIsConfirming(true);
-    try {
-      await confirmAdWatched(redemptionId);
-      Toast.show({
-        type: 'success',
-        text1: '¡Recompensa Obtenida!',
-        text2: 'Has ganado puntos por ver el anuncio.',
-      });
-      navigation.navigate('Home'); // Navigate back to home or a success screen
-    } catch (error: any) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error de Confirmación',
-        text2: error.message,
-      });
-      navigation.goBack(); // Go back if ad confirmation fails
-    } finally {
-      setIsConfirming(false);
-    }
-  };
-
-  const progress = ((AD_DURATION_SECONDS - timeLeft) / AD_DURATION_SECONDS) * 100;
+  const progress = ((adDurationSeconds - timeLeft) / adDurationSeconds) * 100;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.timerText}>Tu recompensa estará disponible en {timeLeft} segundos...</Text>
+        <Text style={styles.timerText}>{t('Your reward will be available in {{timeLeft}} seconds...', { timeLeft })}</Text>
         <View style={styles.progressBarContainer}>
           <View style={[styles.progressBar, { width: `${progress}%` }]} />
         </View>
@@ -76,15 +34,15 @@ export default function AdPlayerScreen() {
         style={styles.webview}
         onError={(e) => Toast.show({
           type: 'error',
-          text1: 'Error',
-          text2: `No se pudo cargar el anuncio: ${e.nativeEvent.description}`,
+          text1: t('Error'),
+          text2: t('Could not load ad: {{description}}', { description: e.nativeEvent.description }),
         })}
       />
       {isConfirming &&
         <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color="#FFFFFF" />
-            <Text style={styles.loadingText}>Confirmando recompensa...</Text>
-        </View>
+            <Text style={styles.loadingText}>{t('Confirming reward...')}</Text>
+        }
       }
     </View>
   );

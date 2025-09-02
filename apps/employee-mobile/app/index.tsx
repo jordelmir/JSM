@@ -1,104 +1,78 @@
-import React, { useState, useEffect } from "react";
-import { 
+import React from "react"; // useState and useEffect are no longer needed
+import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert 
 } from "react-native";
-import { BarCodeScanner } from 'expo-barcode-scanner'; // Add this import
+import { BarCodeScanner } from 'expo-barcode-scanner'; // Still needed for BarCodeScanner component
+import { Redirect } from 'expo-router';
 
-import { createTicket, validateQRCode } from "../src/api/employee";
-import { useAuth } from "../hooks/useAuth"; // Keep useAuth for now, but its usage will change
+import { useAuth } from "../hooks/useAuth";
+import { useTranslation } from 'react-i18next';
+
+import { useCameraPermissions } from '../hooks/useCameraPermissions'; // New import
+import { useTicketGeneration } from '../hooks/useTicketGeneration'; // New import
+import { useQrScanner } from '../hooks/useQrScanner'; // New import
 
 export default function App() {
-  const [loadingAction, setLoadingAction] = useState<null | "ticket" | "qr">(null);
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [scanned, setScanned] = useState(false);
+  const { t } = useTranslation();
+  const { hasPermission, requestPermissions } = useCameraPermissions(); // Use the new hook
+  const { isLoadingTicket, generateTicket } = useTicketGeneration(); // Use the new hook
+  const { isScanning, isLoadingQr, handleScan, resetScanner } = useQrScanner(); // Use the new hook
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
-
-  const { isAuthenticated, loading: authLoading } = useAuth(); // Get isAuthenticated and loading from useAuth
-
-  import { Redirect } from 'expo-router'; // Add this import
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   // Redirect to login if not authenticated
   if (!isAuthenticated && !authLoading) {
     return <Redirect href="/login" />;
   }
 
-  const handleGenerateTicket = async () => {
-    try {
-      setLoadingAction("ticket");
-      const ticket = await createTicket({ amount: 100 });
-      console.log("Ticket generado:", ticket);
-      Alert.alert("Éxito", `Ticket #${ticket.id} generado`);
-    } catch (error: any) {
-      console.error("Error generando ticket", error);
-      Alert.alert("Error", error?.message || "No se pudo generar el ticket");
-    } finally {
-      setLoadingAction(null);
-    }
-  };
-
-  const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
-    setScanned(true);
-    setLoadingAction("qr");
-    try {
-      const validation = await validateQRCode(data);
-      console.log("QR validado:", validation);
-      Alert.alert("QR válido", JSON.stringify(validation), [{ text: "OK", onPress: () => setScanned(false) }]);
-    } catch (error: any) {
-      console.error("Error validando QR", error);
-      Alert.alert("Error", error?.message || "QR inválido", [{ text: "OK", onPress: () => setScanned(false) }]);
-    } finally {
-      setLoadingAction(null);
-    }
-  };
-
   if (hasPermission === null) {
     return (
       <View style={styles.container}>
-        <Text style={styles.message}>Solicitando permisos de cámara...</Text>
+        <Text style={styles.message}>{t("Requesting camera permissions...")}</Text>
       </View>
     );
   }
   if (hasPermission === false) {
     return (
       <View style={styles.container}>
-        <Text style={styles.message}>No tenemos acceso a la cámara.</Text>
+        <Text style={styles.message}>{t("We do not have camera access.")}</Text>
+        <TouchableOpacity
+          style={styles.button} // Reusing button style
+          onPress={requestPermissions}
+        >
+          <Text style={styles.buttonText}>{t("Grant Permissions")}</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Gasolinera JSM - Employee</Text>
+      <Text style={styles.title}>{t("Gasolinera JSM - Employee")}</Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleGenerateTicket} disabled={loadingAction==="ticket"}>
-        {loadingAction === "ticket" ? (
+      <TouchableOpacity style={styles.button} onPress={generateTicket} disabled={isLoadingTicket}>
+        {isLoadingTicket ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Generar Ticket</Text>
+          <Text style={styles.buttonText}>{t("Generate Ticket")}</Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity 
         style={[styles.button, { backgroundColor: "#007AFF" }]} 
-        onPress={() => setScanned(false)} // Re-enable scanner
-        disabled={loadingAction==="qr"}
+        onPress={() => isScanning ? resetScanner() : handleScan({ type: 'qr', data: '' })} // Toggle scan or reset
+        disabled={isLoadingQr}
       >
-        {loadingAction === "qr" ? (
+        {isLoadingQr ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Escanear QR</Text>
+          <Text style={styles.buttonText}>{isScanning ? t("Stop Scan") : t("Scan QR")}</Text>
         )}
       </TouchableOpacity>
 
-      {scanned && (
+      {isScanning && (
         <BarCodeScanner
-          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+          onBarCodeScanned={isScanning ? handleScan : undefined} // Only scan if isScanning is true
           style={StyleSheet.absoluteFillObject}
         />
       )}

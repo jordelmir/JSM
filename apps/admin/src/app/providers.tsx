@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@gasolinera-jsm/shared/store/authStore";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { PROTECTED_ROUTES } from '@/lib/protectedRoutes'; // Import protected routes
+
 import { toast } from 'react-toastify'; // Import toast
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -25,7 +25,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       toast.info("You are already logged in."); // User feedback
       router.push('/dashboard');
     }
-  }, [accessToken, pathname, router, logout]); // Add logout to dependencies
+  }, [accessToken, pathname, router]); // Add logout to dependencies
 
   return (
     <>

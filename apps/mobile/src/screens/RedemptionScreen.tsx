@@ -1,28 +1,24 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useState } from 'react'; // useEffect is no longer needed
 import { View, StyleSheet, Text, ActivityIndicator } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
-import { confirmAdWatched } from '../services/api';
+// Removed: confirmAdWatched
+// Removed: Toast from 'react-native-toast-message';
+// Removed: useTranslation
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'; // Still needed for navigation and route
 
-export default function RedemptionScreen({ route, navigation }) {
-  const { ad, sessionId } = route.params;
+import { useAdConfirmation } from '../hooks/useAdConfirmation'; // New import
+
+type RedemptionScreenRouteProp = RouteProp<{ params: { adUrl: string; redemptionId: string } }, 'params'>;
+
+export default function RedemptionScreen() {
+  const navigation = useNavigation<any>(); // Still needed for navigation
+  const route = useRoute<RedemptionScreenRouteProp>(); // Still needed for route
+  const { adUrl, redemptionId } = route.params; // Destructure params
+
   const video = useRef(null);
-  const [status, setStatus] = useState({});
-  const [isAdWatched, setIsAdWatched] = useState(false);
+  const [status, setStatus] = useState<any>({}); // Use any for now, VideoPlaybackStatus is complex
 
-  useEffect(() => {
-    if (status.didJustFinish && !isAdWatched) {
-      setIsAdWatched(true);
-      confirmAdWatched(sessionId)
-        .then(response => {
-          alert(`¡Puntos acreditados! Nuevo saldo: ${response.balance}`);
-          navigation.navigate('Home');
-        })
-        .catch(error => {
-          alert(`Error al confirmar: ${error.message}`);
-          navigation.navigate('Home');
-        });
-    }
-  }, [status]);
+  const { isAdWatched } = useAdConfirmation(status); // Use the new hook
 
   return (
     <View style={styles.container}>
@@ -32,7 +28,7 @@ export default function RedemptionScreen({ route, navigation }) {
         <Video
           ref={video}
           style={styles.video}
-          source={{ uri: ad.creative_url }}
+          source={{ uri: adUrl }} // Use adUrl from route params
           useNativeControls={false} // Non-skippable
           resizeMode={ResizeMode.CONTAIN}
           isLooping={false}
@@ -46,5 +42,6 @@ export default function RedemptionScreen({ route, navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', backgroundColor: '#000' },
-  video: { alignSelf: 'center', width: '100%', height: '100%' },
+  video: { alignSelf: 'center', width: '100%',
+    height: '100%' },
 });

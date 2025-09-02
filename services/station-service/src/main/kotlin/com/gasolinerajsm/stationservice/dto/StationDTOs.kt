@@ -31,11 +31,7 @@ data class UpdateStationDto(
     @field:Size(min = 3, max = 100, message = "{station.name.size}")
     val name: String?,
 
-        val latitude: Double?,
-
-    @field:Min(value = -90, message = "{station.latitude.minMax}")
-    @field:Max(value = 90, message = "{station.latitude.minMax}")
-    val longitude: Double?,
+    val latitude: Double?,
 
     @field:Min(value = -180, message = "{station.longitude.minMax}")
     @field:Max(value = 180, message = "{station.longitude.minMax}")

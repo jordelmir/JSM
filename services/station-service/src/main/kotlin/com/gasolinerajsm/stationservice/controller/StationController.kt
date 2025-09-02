@@ -1,29 +1,31 @@
 package com.gasolinerajsm.stationservice.controller
 
+import com.gasolinerajsm.stationservice.dto.CreateStationDto
+import com.gasolinerajsm.stationservice.dto.StationDto
+import com.gasolinerajsm.stationservice.dto.UpdateStationDto
 import com.gasolinerajsm.stationservice.service.StationService
-import com.gasolinerajsm.stationservice.model.StationStatus
 import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.Pattern
-import jakarta.validation.constraints.Size
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-import com.gasolinerajsm.stationservice.dto.StationDto
-import com.gasolinerajsm.stationservice.dto.CreateStationDto
-import com.gasolinerajsm.stationservice.dto.UpdateStationDto
-
-
 
 @RestController
-@RequestMapping("/stations") // Standardized API path
+@RequestMapping("/stations")
 class StationController(private val stationService: StationService) {
 
     @GetMapping
     fun getAllStations(): List<StationDto> {
         return stationService.findAll()
+    }
+
+    @GetMapping("/nearby")
+    fun getNearbyStations(
+        @RequestParam @Min(-90) @Max(90) latitude: Double,
+        @RequestParam @Min(-180) @Max(180) longitude: Double,
+        @RequestParam(defaultValue = "5000") @Min(100) @Max(50000) distanceMeters: Int
+    ): List<StationDto> {
+        return stationService.findNearbyStations(longitude, latitude, distanceMeters)
     }
 
     @GetMapping("/{id}")

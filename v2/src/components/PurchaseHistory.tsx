@@ -1,8 +1,8 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react'; // useState and useEffect are no longer needed
 import { useTranslation } from 'react-i18next';
-import * as storage from '../core/storage';
-import eventBus from '../core/eventBus';
+// Removed: import * as storage from '../core/storage';
+// Removed: import eventBus from '../core/eventBus';
+import { usePurchaseHistory } from '../hooks/usePurchaseHistory'; // New import
 
 interface Purchase {
   id: number;
@@ -12,24 +12,7 @@ interface Purchase {
 
 const PurchaseHistory: React.FC = () => {
   const { t } = useTranslation();
-  const [purchaseHistory, setPurchaseHistory] = useState<Purchase[]>([]);
-
-  useEffect(() => {
-    const history = storage.get<Purchase[]>('purchaseHistory') || [];
-    setPurchaseHistory(history);
-
-    const handlePurchaseCompleted = (purchase: Purchase) => {
-      const updatedHistory = [...purchaseHistory, purchase];
-      setPurchaseHistory(updatedHistory);
-      storage.set('purchaseHistory', updatedHistory);
-    };
-
-    eventBus.on('purchaseCompleted', handlePurchaseCompleted);
-
-    return () => {
-      eventBus.off('purchaseCompleted', handlePurchaseCompleted);
-    };
-  }, [purchaseHistory]);
+  const purchaseHistory = usePurchaseHistory(); // Use the new hook
 
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">

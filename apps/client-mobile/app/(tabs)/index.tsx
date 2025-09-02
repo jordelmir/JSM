@@ -1,40 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import React from 'react'; // useState and useEffect are no longer needed
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+// Haptics, Alert are now imported within the hook
 import RewardCascade from '../components/RewardCascade'; // Import RewardCascade
 import { useAdSequenceStore } from '../lib/stores/useAdSequenceStore'; // Import Zustand store
+import { useTranslation } from 'react-i18next'; // New import for translation
+import { useAdSequenceFlow } from '../../lib/hooks/useAdSequenceFlow'; // New import
 
 export default function TabScreen() {
   const { currentStep, totalTickets, totalSteps, watchAd, isSequenceCompleted } = useAdSequenceStore();
-  const [isLoadingAd, setIsLoadingAd] = useState(false);
-  const [showRewardCascade, setShowRewardCascade] = useState(false);
+  const { t } = useTranslation(); // Initialize useTranslation
 
-  // useEffect para disparar la cascada cuando el estado del store cambie a completado
-  useEffect(() => {
-    if (isSequenceCompleted) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setShowRewardCascade(true);
-    }
-  }, [isSequenceCompleted]);
-
-  const handleWatchAd = async () => {
-    setIsLoadingAd(true);
-    // Simular la carga del anuncio
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    watchAd(); // Llamar a la acción del store
-    setIsLoadingAd(false);
-  };
-
-  const handleRewardCascadeEnd = () => {
-    setShowRewardCascade(false);
-    Alert.alert("¡Felicidades!", `Has ganado ${totalTickets} boletos para el sorteo.`);
-  };
+  const {
+    isLoadingAd,
+    showRewardCascade,
+    handleWatchAd,
+    handleRewardCascadeEnd,
+  } = useAdSequenceFlow(); // Use the new hook
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Dashboard Cliente</Text>
-      <Text style={styles.subtitle}>Paso de Anuncio: {currentStep} / {totalSteps}</Text>
-      <Text style={styles.subtitle}>Tickets Ganados: {totalTickets}</Text>
+      <Text style={styles.title}>{t("Client Dashboard")}</Text> {/* Translated */}
+      <Text style={styles.subtitle}>{t("Ad Step")}: {currentStep} / {totalSteps}</Text> {/* Translated */}
+      <Text style={styles.subtitle}>{t("Tickets Won")}: {totalTickets}</Text> {/* Translated */}
 
       <TouchableOpacity
         style={[styles.button, isLoadingAd && styles.buttonDisabled]}
@@ -44,12 +31,12 @@ export default function TabScreen() {
         {isLoadingAd ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Ver Siguiente Anuncio</Text>
+          <Text style={styles.buttonText}>{t("Watch Next Ad")}</Text> {/* Translated */}
         )}
       </TouchableOpacity>
 
       {isSequenceCompleted && !showRewardCascade && (
-        <Text style={styles.completedMessage}>¡Secuencia de Anuncios Completada!</Text>
+        <Text style={styles.completedMessage}>{t("Ad Sequence Completed!")}</Text> {/* Translated */}
       )}
 
       {showRewardCascade && (
